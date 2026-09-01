@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Finalizar encomenda — Hambúrguer do Arraso</title>
+<link rel="stylesheet" href="assets/style.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+<div id="topbar-mount"></div>
+
+<main class="wrap-sm" style="padding:2.5rem 0 5rem;">
+  <h1 style="font-size:1.6rem;margin-bottom:1.5rem;">Finalizar encomenda</h1>
+
+  <div id="checkout-content">
+    <div class="empty-state"><span class="spinner"></span></div>
+  </div>
+</main>
+
+<script src="assets/supabase-config.js"></script>
+<script src="assets/common.js"></script>
+<script src="assets/cart.js"></script>
+<script src="assets/layout.js"></script>
+<script>
+renderTopbar('loja');
+
+let userProfile = null;
+let campoDefs = [];
+
+async function init(){
+  const auth = await requireLogin('login.html?next=checkout.html');
+  if(!auth) return;
+  userProfile = auth.profile;
+
+  const cart = getCart();
+  if(!cart.length){
+    document.getElementById('checkout-content').innerHTML = `
+      <div class="empty-state"><div class="icon">🛒</div><p>O teu carrinho está vazio.</p>
+      <a href="loja.html" class="btn-orange" style="margin-top:1rem;">Ver menu</a></div>`;
+    return;
+  }
+
+  const { data } = await supabaseClient.from('order_field_defs').select('*').order('ordem');
+  campoDefs = data || [];
+
+  renderCheckoutForm(cart);
+}
+
+function renderCheckoutForm(cart){
+  const resumo = cart.map(item => {
+    const extrasTotal = (item.extras||[]).reduce((s,e)=>s+Number(e.preco||0),0);
+    const linePrice = (Number(item.preco) + extrasTotal) * item.quantidade;
+    return `<div style="display:flex;justify-content:space-between;font-size:.9rem;margin-bottom:.4rem;">
+      <span>${item.quantidade}x ${item.nome}${item.obs ? ` <span style="color:rgba(241,231,218,0.5);">(${item.obs})</span>` : ''}</span>
+      <span style="color:var(--orange-light);">${formatKz(linePrice)}</span>
+    </div>`;
+  }).join('');
+
+  const extraFieldsHtml = campoDefs.map(f => {
+    const req = f.required ? 'required' : '';
+    const labelText = f.label + (f.required ? ' *' : '');
+    if(f.type === 'textarea'){
+      return `<div class="field"><label>${labelText}</label><textarea data-campo-id="${f.id}" class="campo-extra" rows="2" ${req}></textarea></div>`;
+    }
+    if(f.type === 'select'){
+      const opts = (f.options||[]).map(o => `<option value="${o}">${o}</option>`).join('');
+      return `<div class="field"><label>${labelText}</label><select data-campo-id="${f.id}" class="campo-extra" ${req}><option value="">Selecione…</option>${opts}</select></div>`;
+    }
+    return `<div class="field"><label>${labelText}</label><input type="text" data-campo-id="${f.id}" class="campo-extra" ${req}></div>`;
+  }).join('');
+
+  document.getElementById('checkout-content').innerHTML = `
+    <div class="admin-card" style="margin-bottom:1.5rem;">
+      ${resumo}
+      <div style="display:flex;justify-content:space-between;font-weight:800;padding-top:.6rem;border-top:1px solid rgba(241,231,218,0.1);margin-top:.4rem;">
+        <span>Total</span><span style="color:var(--orange-light);">${formatKz(cartTotal())}</span>
+      </div>
+    </div>
+
+    <form id="checkout-form">
+      <div class="field">
+        <label>Nome completo *</label>
+        <input id="co-nome" type="text" required value="${userProfile.nome || ''}">
+      </div>
+      <div class="field">
+        <label>Telefone *</label>
+        <input id="co-telefone" type="tel" required value="${userProfile.telefone || ''}" placeholder="9XX XXX XXX">
+      </div>
+      <div class="field">
+        <label>Morada de entrega *</label>
+        <input id="co-morada" type="text" required value="${userProfile.morada || ''}">
+      </div>
+      <div class="field">
+        <label>Forma de pagamento *</label>
+        <select id="co-pagamento" required>
+          <option value="Numerário na entrega">Numerário na entrega</option>
+          <option value="Transferência bancária">Transferência bancária</option>
+          <option value="Multicaixa Express">Multicaixa Express</option>
+        </select>
+      </div>
+      ${extraFieldsHtml}
+      <p id="checkout-error" class="error-msg" style="display:none;"></p>
+      <button type="submit" class="btn-orange block" id="checkout-btn">Confirmar encomenda</button>
+    </form>
+  `;
+
+  document.getElementById('checkout-form').addEventListener('submit', enviarEncomenda);
+}
+
+async function enviarEncomenda(e){
+  e.preventDefault();
+  const btn = document.getElementById('checkout-btn');
+  const errEl = document.getElementById('checkout-error');
+  errEl.style.display = 'none';
+  btn.disabled = true; btn.textContent = 'A enviar…';
+
+  const cart = getCart();
+  const session = await getSession();
+
+  const extras = {};
+  document.querySelectorAll('.campo-extra').forEach(el => {
+    const def = campoDefs.find(f => f.id === el.dataset.campoId);
+    extras[def ? def.label : el.dataset.campoId] = el.value;
+  });
+
+  const pedido = {
+    cliente_id: session.user.id,
+    total: cartTotal(),
+    morada: document.getElementById('co-morada').value.trim(),
+    telefone: document.getElementById('co-telefone').value.trim(),
+    pagamento: document.getElementById('co-pagamento').value,
+    campos_extra: extras
+  };
+
+  const { data: order, error: orderErr } = await supabaseClient
+    .from('orders').insert(pedido).select().single();
+
+  if(orderErr){
+    errEl.textContent = 'Não foi possível enviar a encomenda. Tenta novamente.';
+    errEl.style.display = 'block';
+    btn.disabled = false; btn.textContent = 'Confirmar encomenda';
+    console.warn(orderErr);
+    return;
+  }
+
+  const itens = cart.map(item => ({
+    order_id: order.id,
+    produto_id: item.produto_id,
+    nome: item.nome,
+    preco: item.preco,
+    quantidade: item.quantidade,
+    observacoes: item.obs || '',
+    extras: item.extras || []
+  }));
+  await supabaseClient.from('order_items').insert(itens);
+
+  clearCart();
+  document.getElementById('checkout-content').innerHTML = `
+    <div class="empty-state">
+      <div class="icon">✅</div>
+      <h3 class="font-display" style="font-size:1.3rem;margin-bottom:.5rem;">Encomenda recebida!</h3>
+      <p>Obrigado! Vamos preparar tudo com carinho.</p>
+      <a href="conta.html?tab=encomendas" class="btn-orange" style="margin-top:1.2rem;">Ver as minhas encomendas</a>
+    </div>`;
+}
+
+init();
+</script>
+</body>
+</html>

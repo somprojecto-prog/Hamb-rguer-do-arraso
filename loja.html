@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Menu — Hambúrguer do Arraso</title>
+<link rel="stylesheet" href="assets/style.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+<div id="topbar-mount"></div>
+
+<main class="wrap" style="padding:2.5rem 0 4rem;">
+  <h1 style="font-size:1.8rem;margin-bottom:1.2rem;">Menu</h1>
+
+  <div class="field" style="max-width:420px;">
+    <input id="search-input" type="text" placeholder="Procurar hambúrguer, bebida…" oninput="aplicarFiltros()">
+  </div>
+
+  <div class="filter-bar" id="filter-bar">
+    <button class="filter-chip active" data-cat="todos" onclick="mudarCategoria('todos')">Todos</button>
+    <button class="filter-chip" data-cat="fastfood" onclick="mudarCategoria('fastfood')">Fast Food</button>
+    <button class="filter-chip" data-cat="bebidas" onclick="mudarCategoria('bebidas')">Bebidas</button>
+  </div>
+
+  <div id="products-box" class="product-grid" style="margin-top:1rem;"></div>
+</main>
+
+<!-- Modal de detalhes do produto -->
+<div id="product-modal" class="modal-backdrop">
+  <div class="overlay" onclick="closeProductModal()"></div>
+  <div class="modal-box" style="max-width:480px;">
+    <div class="modal-head">
+      <h3 id="modal-nome" class="font-display" style="font-size:1.2rem;"></h3>
+      <span class="modal-close" onclick="closeProductModal()">&times;</span>
+    </div>
+    <div class="modal-body">
+      <div id="modal-img" class="product-img" style="height:200px;margin-bottom:1rem;"></div>
+      <p id="modal-desc" style="color:rgba(241,231,218,0.7);font-size:.9rem;margin-bottom:1rem;"></p>
+      <p id="modal-preco" style="font-size:1.3rem;font-weight:800;color:var(--orange-light);margin-bottom:1rem;"></p>
+
+      <div id="modal-extras" style="margin-bottom:1rem;"></div>
+
+      <div class="field">
+        <label>Pedido adicional (opcional)</label>
+        <input id="modal-obs" type="text" placeholder="Ex: sem cebola">
+      </div>
+
+      <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.2rem;">
+        <label style="margin:0;">Quantidade</label>
+        <div style="display:flex;align-items:center;gap:.6rem;">
+          <button onclick="mudarQtdModal(-1)" class="btn-outline" style="width:34px;height:34px;padding:0;border-radius:50%;">−</button>
+          <span id="modal-qtd" style="min-width:20px;text-align:center;">1</span>
+          <button onclick="mudarQtdModal(1)" class="btn-outline" style="width:34px;height:34px;padding:0;border-radius:50%;">+</button>
+        </div>
+      </div>
+
+      <button class="btn-orange block" onclick="confirmarAddCarrinho()">Adicionar ao carrinho</button>
+    </div>
+  </div>
+</div>
+
+<script src="assets/supabase-config.js"></script>
+<script src="assets/common.js"></script>
+<script src="assets/cart.js"></script>
+<script src="assets/layout.js"></script>
+<script>
+renderTopbar('loja');
+
+let todosOsProdutos = [];
+let categoriaAtual = 'todos';
+let modalItem = null;
+let modalQtd = 1;
+let modalExtrasEscolhidos = [];
+
+async function carregarProdutos(){
+  const box = document.getElementById('products-box');
+  box.innerHTML = `<div class="empty-state"><span class="spinner"></span></div>`;
+  const { data, error } = await supabaseClient.from('products').select('*').eq('ativo', true).order('nome');
+  if(error){ box.innerHTML = `<p class="empty-state">Não foi possível carregar o menu.</p>`; return; }
+  todosOsProdutos = data;
+  aplicarFiltros();
+
+  // Se veio de um link direto (?produto=id), abre o modal automaticamente
+  const params = new URLSearchParams(window.location.search);
+  const produtoId = params.get('produto');
+  if(produtoId){
+    const item = todosOsProdutos.find(p => p.id === produtoId);
+    if(item) openProductModal(item);
+  }
+}
+
+function mudarCategoria(cat){
+  categoriaAtual = cat;
+  document.querySelectorAll('.filter-chip').forEach(b => b.classList.toggle('active', b.dataset.cat === cat));
+  aplicarFiltros();
+}
+
+function aplicarFiltros(){
+  const q = document.getElementById('search-input').value.trim().toLowerCase();
+  const filtrados = todosOsProdutos.filter(p => {
+    const matchCat = categoriaAtual === 'todos' || p.categoria === categoriaAtual;
+    const matchQ = !q || p.nome.toLowerCase().includes(q) || (p.descricao||'').toLowerCase().includes(q);
+    return matchCat && matchQ;
+  });
+  renderProdutos(filtrados);
+}
+
+function renderProdutos(lista){
+  const box = document.getElementById('products-box');
+  if(!lista.length){ box.innerHTML = `<p class="empty-state">Nenhum produto encontrado.</p>`; return; }
+  box.innerHTML = lista.map(p => `
+    <div class="product-card burn-edge card-hover" onclick='abrirProdutoPorId("${p.id}")'>
+      <div class="product-img" style="${p.imagem_url ? `background-image:url(${p.imagem_url})` : ''}">${p.imagem_url ? '' : (p.categoria==='bebidas' ? '🥤' : '🍔')}</div>
+      <div class="info">
+        <h4>${p.nome}</h4>
+        <p class="price">
+          ${p.preco_promocional ? `<span style="text-decoration:line-through;opacity:.5;font-weight:400;margin-right:.4rem;">${formatKz(p.preco)}</span>${formatKz(p.preco_promocional)}` : formatKz(p.preco)}
+        </p>
+        ${p.stock <= 0 ? '<p style="font-size:.75rem;color:#ffb4b4;margin-top:.3rem;">Esgotado</p>' : ''}
+      </div>
+    </div>
+  `).join('');
+}
+
+function abrirProdutoPorId(id){
+  const item = todosOsProdutos.find(p => p.id === id);
+  if(item) openProductModal(item);
+}
+
+function openProductModal(item){
+  modalItem = item;
+  modalQtd = 1;
+  modalExtrasEscolhidos = [];
+  document.getElementById('modal-nome').textContent = item.nome;
+  document.getElementById('modal-desc').textContent = item.descricao || '';
+  document.getElementById('modal-obs').value = '';
+  const precoFinal = item.preco_promocional || item.preco;
+  document.getElementById('modal-preco').textContent = formatKz(precoFinal);
+  const imgEl = document.getElementById('modal-img');
+  if(item.imagem_url){ imgEl.style.backgroundImage = `url(${item.imagem_url})`; imgEl.textContent=''; }
+  else{ imgEl.style.backgroundImage=''; imgEl.textContent = 'Sem foto'; }
+
+  const extrasBox = document.getElementById('modal-extras');
+  const extras = item.extras || [];
+  if(extras.length){
+    extrasBox.innerHTML = `<label>Extras</label>` + extras.map((ex, i) => `
+      <label style="display:flex;align-items:center;gap:.6rem;font-size:.88rem;margin-bottom:.4rem;">
+        <input type="checkbox" onchange="toggleExtra(${i}, this.checked)">
+        ${ex.nome} <span style="color:var(--orange-light);margin-left:auto;">+${formatKz(ex.preco)}</span>
+      </label>
+    `).join('');
+  } else {
+    extrasBox.innerHTML = '';
+  }
+
+  document.getElementById('modal-qtd').textContent = modalQtd;
+  document.getElementById('product-modal').classList.add('open');
+}
+function closeProductModal(){ document.getElementById('product-modal').classList.remove('open'); }
+function mudarQtdModal(delta){
+  modalQtd = Math.max(1, modalQtd + delta);
+  document.getElementById('modal-qtd').textContent = modalQtd;
+}
+function toggleExtra(index, checked){
+  const ex = modalItem.extras[index];
+  modalExtrasEscolhidos = modalExtrasEscolhidos.filter(e => e.nome !== ex.nome);
+  if(checked) modalExtrasEscolhidos.push(ex);
+}
+function confirmarAddCarrinho(){
+  const obs = document.getElementById('modal-obs').value.trim();
+  addToCartItem(modalItem, modalQtd, modalExtrasEscolhidos, obs);
+  closeProductModal();
+  showToast(`${modalItem.nome} adicionado ao carrinho`);
+}
+
+carregarProdutos();
+</script>
+</body>
+</html>

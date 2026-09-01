@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Criar conta — Hambúrguer do Arraso</title>
+<link rel="stylesheet" href="assets/style.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+<div id="topbar-mount"></div>
+
+<div class="auth-shell">
+  <div class="auth-card burn-edge">
+    <h2 class="font-display">Criar conta</h2>
+    <p class="sub">Regista-te para acompanhares as tuas encomendas.</p>
+
+    <form id="registo-form">
+      <div class="field">
+        <label for="nome">Nome completo</label>
+        <input id="nome" type="text" required placeholder="O teu nome">
+      </div>
+      <div class="field">
+        <label for="email">E-mail</label>
+        <input id="email" type="email" required placeholder="oteu@email.com">
+      </div>
+      <div class="field">
+        <label for="password">Senha</label>
+        <input id="password" type="password" required minlength="6" placeholder="Mínimo 6 caracteres">
+      </div>
+      <p id="registo-error" class="error-msg" style="display:none;"></p>
+      <button type="submit" class="btn-orange block" id="registo-btn">Criar conta</button>
+    </form>
+
+    <p class="auth-switch">Já tens conta? <a href="login.html">Entra aqui</a></p>
+  </div>
+</div>
+
+<script src="assets/supabase-config.js"></script>
+<script src="assets/common.js"></script>
+<script src="assets/cart.js"></script>
+<script src="assets/layout.js"></script>
+<script>
+renderTopbar();
+
+document.getElementById('registo-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const btn = document.getElementById('registo-btn');
+  const errEl = document.getElementById('registo-error');
+  errEl.style.display = 'none';
+  btn.disabled = true; btn.textContent = 'A criar conta…';
+
+  const nome = document.getElementById('nome').value.trim();
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+
+  const { data, error } = await supabaseClient.auth.signUp({
+    email, password,
+    options: { data: { nome } }
+  });
+
+  if(error){
+    errEl.textContent = error.message.includes('already') ? 'Já existe uma conta com este e-mail.' : 'Não foi possível criar a conta.';
+    errEl.style.display = 'block';
+    btn.disabled = false; btn.textContent = 'Criar conta';
+    return;
+  }
+
+  // Garante que o nome fica gravado no perfil (o trigger já cria a linha, isto atualiza o nome)
+  if(data.user){
+    await supabaseClient.from('profiles').update({ nome }).eq('id', data.user.id);
+  }
+
+  if(data.session){
+    window.location.href = 'conta.html';
+  } else {
+    document.querySelector('.auth-card').innerHTML = `
+      <h2 class="font-display">Confirma o teu e-mail</h2>
+      <p class="sub">Enviámos um link de confirmação para ${email}. Confirma para poderes entrar.</p>
+      <a href="login.html" class="btn-orange block">Ir para o login</a>
+    `;
+  }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Carrinho — Hambúrguer do Arraso</title>
+<link rel="stylesheet" href="assets/style.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+<div id="topbar-mount"></div>
+
+<main class="wrap-sm" style="padding:2.5rem 0 5rem;">
+  <h1 style="font-size:1.6rem;margin-bottom:1.5rem;">O meu carrinho</h1>
+  <div id="cart-box"></div>
+  <div id="cart-summary" style="margin-top:1.5rem;"></div>
+</main>
+
+<script src="assets/supabase-config.js"></script>
+<script src="assets/common.js"></script>
+<script src="assets/cart.js"></script>
+<script src="assets/layout.js"></script>
+<script>
+renderTopbar('loja');
+
+function renderCartPage(){
+  const cart = getCart();
+  const box = document.getElementById('cart-box');
+  const summary = document.getElementById('cart-summary');
+
+  if(!cart.length){
+    box.innerHTML = `<div class="empty-state"><div class="icon">🛒</div><p>O teu carrinho está vazio.</p></div>`;
+    summary.innerHTML = `<a href="loja.html" class="btn-orange block">Ver menu</a>`;
+    return;
+  }
+
+  box.innerHTML = cart.map(item => {
+    const extrasTotal = (item.extras||[]).reduce((s,e)=>s+Number(e.preco||0),0);
+    const linePrice = (Number(item.preco) + extrasTotal) * item.quantidade;
+    const extrasKey = JSON.stringify(item.extras).replace(/"/g,'&quot;');
+    return `
+    <div class="order-card">
+      <div style="display:flex;justify-content:space-between;gap:1rem;">
+        <div>
+          <p style="font-weight:700;">${item.nome}</p>
+          ${(item.extras||[]).map(e => `<p style="font-size:.78rem;color:rgba(241,231,218,0.55);">+ ${e.nome}</p>`).join('')}
+          ${item.obs ? `<p style="font-size:.78rem;color:rgba(241,231,218,0.55);">Obs: ${item.obs}</p>` : ''}
+        </div>
+        <p style="font-weight:700;color:var(--orange-light);white-space:nowrap;">${formatKz(linePrice)}</p>
+      </div>
+      <div style="display:flex;align-items:center;gap:.6rem;margin-top:.8rem;">
+        <button onclick='changeCartQty("${item.produto_id}", ${extrasKey}, -1); renderCartPage();' class="btn-outline" style="width:32px;height:32px;padding:0;border-radius:50%;">−</button>
+        <span style="min-width:20px;text-align:center;">${item.quantidade}</span>
+        <button onclick='changeCartQty("${item.produto_id}", ${extrasKey}, 1); renderCartPage();' class="btn-outline" style="width:32px;height:32px;padding:0;border-radius:50%;">+</button>
+      </div>
+    </div>
+  `;
+  }).join('');
+
+  summary.innerHTML = `
+    <div style="display:flex;justify-content:space-between;font-size:1.2rem;font-weight:800;padding:1rem 0;border-top:1px solid rgba(241,231,218,0.1);">
+      <span>Total</span><span style="color:var(--orange-light);">${formatKz(cartTotal())}</span>
+    </div>
+    <a href="checkout.html" class="btn-orange block">Finalizar encomenda</a>
+  `;
+}
+renderCartPage();
+</script>
+</body>
+</html>

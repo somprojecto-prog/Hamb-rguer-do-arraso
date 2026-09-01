@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hambúrguer do Arraso</title>
+<link rel="stylesheet" href="assets/style.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+<div id="topbar-mount"></div>
+
+<header class="wood-texture" style="padding:5rem 0 4rem;">
+  <div class="wrap" style="max-width:760px;">
+    <p style="color:var(--orange-light);letter-spacing:.15em;text-transform:uppercase;font-size:.75rem;margin-bottom:.8rem;">Centralidade do Kilamba · R-3</p>
+    <h1 style="font-size:2.6rem;font-weight:900;line-height:1.05;margin-bottom:1rem;">Hambúrguer do Arraso</h1>
+    <p style="color:rgba(241,231,218,0.75);font-size:1.05rem;margin-bottom:2rem;">O melhor da banda 🔥 Faz a tua encomenda online e recebe em casa, ou reserva a tua mesa.</p>
+    <div style="display:flex;gap:.8rem;flex-wrap:wrap;">
+      <a href="loja.html" class="btn-orange">Ver menu</a>
+      <a href="reservas.html" class="btn-outline">Reservar mesa</a>
+    </div>
+  </div>
+</header>
+
+<main class="wrap" style="padding:3.5rem 0;">
+  <h2 style="font-size:1.5rem;margin-bottom:1.5rem;">Mais pedidos</h2>
+  <div id="destaques" class="product-grid"></div>
+</main>
+
+<footer class="charcoal-texture" style="padding:2.5rem 0;border-top:1px solid rgba(241,231,218,0.08);">
+  <div class="wrap" style="text-align:center;font-size:.85rem;color:rgba(241,231,218,0.5);">
+    © <span id="ano"></span> Hambúrguer do Arraso — Todos os direitos reservados.
+  </div>
+</footer>
+
+<script src="assets/supabase-config.js"></script>
+<script src="assets/common.js"></script>
+<script src="assets/cart.js"></script>
+<script src="assets/layout.js"></script>
+<script>
+document.getElementById('ano').textContent = new Date().getFullYear();
+renderTopbar('home');
+
+async function carregarDestaques(){
+  const box = document.getElementById('destaques');
+  const { data, error } = await supabaseClient
+    .from('products')
+    .select('*')
+    .eq('ativo', true)
+    .order('created_at', { ascending:false })
+    .limit(4);
+  if(error){ box.innerHTML = `<p class="empty-state">Não foi possível carregar os produtos.</p>`; return; }
+  if(!data.length){ box.innerHTML = `<p class="empty-state">Ainda não há produtos disponíveis.</p>`; return; }
+  box.innerHTML = data.map(p => `
+    <a href="loja.html?produto=${p.id}" class="product-card burn-edge card-hover">
+      <div class="product-img" style="${p.imagem_url ? `background-image:url(${p.imagem_url})` : ''}">${p.imagem_url ? '' : 'Sem foto'}</div>
+      <div class="info">
+        <h4>${p.nome}</h4>
+        <p class="price">${p.preco_promocional ? formatKz(p.preco_promocional) : formatKz(p.preco)}</p>
+      </div>
+    </a>
+  `).join('');
+}
+carregarDestaques();
+</script>
+</body>
+</html>

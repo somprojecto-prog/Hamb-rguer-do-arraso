@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reservar mesa — Hambúrguer do Arraso</title>
+<link rel="stylesheet" href="assets/style.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+<div id="topbar-mount"></div>
+
+<main class="wrap-sm" style="padding:2.5rem 0 5rem;">
+  <h1 style="font-size:1.6rem;margin-bottom:.4rem;">Reservar mesa</h1>
+  <p style="color:rgba(241,231,218,0.6);margin-bottom:1.5rem;">Todos os dias, das 16h às 00:00.</p>
+
+  <div id="reserva-content">
+    <div class="empty-state"><span class="spinner"></span></div>
+  </div>
+</main>
+
+<script src="assets/supabase-config.js"></script>
+<script src="assets/common.js"></script>
+<script src="assets/cart.js"></script>
+<script src="assets/layout.js"></script>
+<script>
+renderTopbar('reservas');
+
+async function init(){
+  const auth = await requireLogin('login.html?next=reservas.html');
+  if(!auth) return;
+  const perfil = auth.profile;
+
+  document.getElementById('reserva-content').innerHTML = `
+    <form id="reserva-form" class="admin-card">
+      <div class="field"><label>Nome *</label><input id="r-nome" type="text" required value="${perfil.nome || ''}"></div>
+      <div class="field"><label>Telefone *</label><input id="r-telefone" type="tel" required value="${perfil.telefone || ''}"></div>
+      <div class="field"><label>E-mail</label><input id="r-email" type="email" value="${auth.session.user.email}"></div>
+      <div style="display:flex;gap:1rem;">
+        <div class="field" style="flex:1;"><label>Data *</label><input id="r-data" type="date" required></div>
+        <div class="field" style="flex:1;"><label>Hora *</label><input id="r-hora" type="time" required></div>
+      </div>
+      <div style="display:flex;gap:1rem;">
+        <div class="field" style="flex:1;"><label>Nº de pessoas *</label><input id="r-pessoas" type="number" min="1" value="2" required></div>
+        <div class="field" style="flex:1;">
+          <label>Tipo de mesa</label>
+          <select id="r-tipo">
+            <option>Interior</option>
+            <option>Esplanada</option>
+            <option>Reservado (privado)</option>
+          </select>
+        </div>
+      </div>
+      <div class="field"><label>Observações</label><textarea id="r-obs" rows="2" placeholder="Ex: aniversário, alergias…"></textarea></div>
+      <p id="reserva-error" class="error-msg" style="display:none;"></p>
+      <button type="submit" class="btn-orange block" id="reserva-btn">Confirmar reserva</button>
+    </form>
+  `;
+
+  document.getElementById('reserva-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('reserva-btn');
+    btn.disabled = true; btn.textContent = 'A enviar…';
+
+    const { error } = await supabaseClient.from('reservations').insert({
+      cliente_id: auth.session.user.id,
+      nome: document.getElementById('r-nome').value.trim(),
+      telefone: document.getElementById('r-telefone').value.trim(),
+      email: document.getElementById('r-email').value.trim(),
+      data_reserva: document.getElementById('r-data').value,
+      hora_reserva: document.getElementById('r-hora').value,
+      pessoas: Number(document.getElementById('r-pessoas').value),
+      tipo_mesa: document.getElementById('r-tipo').value,
+      observacoes: document.getElementById('r-obs').value.trim()
+    });
+
+    if(error){
+      document.getElementById('reserva-error').textContent = 'Não foi possível enviar a reserva.';
+      document.getElementById('reserva-error').style.display = 'block';
+      btn.disabled = false; btn.textContent = 'Confirmar reserva';
+      return;
+    }
+
+    document.getElementById('reserva-content').innerHTML = `
+      <div class="empty-state">
+        <div class="icon">✅</div>
+        <h3 class="font-display" style="font-size:1.3rem;margin-bottom:.5rem;">Reserva enviada!</h3>
+        <p>Vamos confirmar contigo brevemente.</p>
+      </div>`;
+  });
+}
+init();
+</script>
+</body>
+</html>
