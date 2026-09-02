@@ -14,36 +14,96 @@
 <header class="wood-texture hero-section">
   <div class="wrap hero-grid">
     <div class="hero-text reveal">
-      <p style="color:var(--orange-light);letter-spacing:.15em;text-transform:uppercase;font-size:.75rem;margin-bottom:.8rem;">Centralidade do Kilamba · R-3</p>
-      <h1 style="font-size:2.6rem;font-weight:900;line-height:1.05;margin-bottom:1rem;">Hambúrguer do Arraso</h1>
-      <p style="color:rgba(241,231,218,0.75);font-size:1.05rem;margin-bottom:2rem;">O melhor da banda 🔥 Faz a tua encomenda online e recebe em casa, ou reserva a tua mesa.</p>
+      <p class="hero-tag">O melhor da banda 🔥</p>
+      <h1 class="hero-title">Hambúrguer<br>do <span>Arraso</span></h1>
+      <p style="color:rgba(241,231,218,0.75);font-size:1.05rem;margin-bottom:2rem;">Faz a tua encomenda online e recebe em casa, ou reserva a tua mesa.</p>
       <div style="display:flex;gap:.8rem;flex-wrap:wrap;">
-        <a href="loja.html" class="btn-orange btn-pulse">Ver menu</a>
-        <a href="reservas.html" class="btn-outline">Reservar mesa</a>
+        <a href="loja.html" class="btn-orange btn-pulse">Ver menu
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </a>
+        <a href="reservas.html" class="btn-outline">Reservar mesa
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>
+        </a>
       </div>
     </div>
-    <div class="hero-photo reveal" style="background-image:url('assets/img/hero-burger.jpg');"></div>
+    <div class="hero-photo reveal" style="background-image:url('assets/img/hero-burger.jpg');">
+      <div class="hero-badge">
+        <span>100%</span>
+        Carne bovina<br>premium
+      </div>
+    </div>
   </div>
 </header>
 
-<main class="wrap" style="padding:3.5rem 0;">
+<div class="wrap">
+  <div class="feature-bar reveal">
+    <div class="feature-item">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--orange-light)" stroke-width="1.8"><path d="M12 2c1.5 3-1 4-1 6.5A3.5 3.5 0 0 0 15 12c0-1-.3-1.7-.7-2.3.9.3 2.7 1.8 2.7 4.8a5 5 0 0 1-10 0c0-3.5 2-4.7 3-7 .6-1.3.4-2.7 0-3.5.6.2 1.5.7 2 3z"/></svg>
+      <div><h5>Grelhado na hora</h5><p>Sabor único que só o fogo dá</p></div>
+    </div>
+    <div class="feature-item">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--orange-light)" stroke-width="1.8"><path d="M3 12h18M5 12a7 7 0 0 1 14 0M2 12h20l-1.5 5H3.5z"/></svg>
+      <div><h5>Entrega rápida</h5><p>Em sua casa num instante</p></div>
+    </div>
+    <div class="feature-item">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--orange-light)" stroke-width="1.8"><circle cx="12" cy="8" r="5"/><path d="M8.5 12.5 7 21l5-2.5L17 21l-1.5-8.5"/></svg>
+      <div><h5>Ingredientes frescos</h5><p>Qualidade premium todos os dias</p></div>
+    </div>
+    <div class="feature-item">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--orange-light)" stroke-width="1.8"><path d="M12 21s-7.5-4.6-10-9.3C.4 8 2.3 4 6.3 4c2 0 3.6 1.2 5.7 3.6C14.1 5.2 15.7 4 17.7 4c4 0 5.9 4 4.3 7.7-2.5 4.7-10 9.3-10 9.3z"/></svg>
+      <div><h5>Feito com amor</h5><p>Paixão em cada detalhe</p></div>
+    </div>
+  </div>
+</div>
+
+<main class="wrap" style="padding:2.5rem 0;">
 
   <div class="carousel-wrap reveal">
-    <p class="section-eyebrow">FAST FOOD</p>
-    <h2 class="section-title">Do nosso fogão para si</h2>
+    <div class="section-head">
+      <div>
+        <p class="section-eyebrow">FAST FOOD</p>
+        <h2 class="section-title">Do nosso fogão para si</h2>
+      </div>
+      <a href="loja.html" class="ver-tudo">Ver tudo
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg>
+      </a>
+    </div>
     <button class="carousel-arrow left" onclick="scrollCarousel('fastfood-track',-260)">‹</button>
     <button class="carousel-arrow right" onclick="scrollCarousel('fastfood-track',260)">›</button>
     <div id="fastfood-track" class="carousel-track"></div>
+    <div id="fastfood-dots" class="carousel-dots"></div>
   </div>
 
   <div class="carousel-wrap reveal">
-    <p class="section-eyebrow">BEBIDAS</p>
-    <h2 class="section-title">Para acompanhar</h2>
+    <div class="section-head">
+      <div>
+        <p class="section-eyebrow">BEBIDAS</p>
+        <h2 class="section-title">Para acompanhar</h2>
+      </div>
+      <a href="loja.html" class="ver-tudo">Ver tudo
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg>
+      </a>
+    </div>
     <button class="carousel-arrow left" onclick="scrollCarousel('bebidas-track',-180)">‹</button>
     <button class="carousel-arrow right" onclick="scrollCarousel('bebidas-track',180)">›</button>
     <div id="bebidas-track" class="carousel-track"></div>
   </div>
   <p class="age-notice">🔞 Bebidas alcoólicas destinadas apenas a maiores de 18 anos.</p>
+
+  <div class="promo-banner reveal">
+    <div class="promo-icon">
+      <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="var(--orange-light)" stroke-width="1.8"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M9 2h6M12 2v2"/></svg>
+    </div>
+    <div class="promo-text">
+      <p class="section-eyebrow" style="margin-bottom:.2rem;">OFERTA ESPECIAL</p>
+      <h3>10% de desconto</h3>
+      <p style="color:rgba(241,231,218,0.6);font-size:.85rem;">na tua primeira encomenda!</p>
+    </div>
+    <div class="promo-code">
+      <span>CÓDIGO</span>
+      ARRASO10
+    </div>
+  </div>
 
 </main>
 
@@ -104,26 +164,30 @@ async function carregarDestaques(){
   const fastfood = data.filter(p => p.categoria === 'fastfood');
   const bebidas = data.filter(p => p.categoria === 'bebidas');
 
-  fastfoodBox.innerHTML = fastfood.map(p => `
+  fastfoodBox.innerHTML = fastfood.map((p,i) => `
     <a href="produto.html?id=${p.id}" class="food-card burn-edge card-hover">
+      ${i===0 ? '<span class="badge-tag">🔥 Mais pedido</span>' : ''}
       <div class="product-img" style="${p.imagem_url?`background-image:url(${p.imagem_url})`:''}">${p.imagem_url?'':`[ Foto — ${p.nome} ]`}</div>
       <div class="info">
         <h4>${p.nome}</h4>
         <p class="desc">${p.descricao || ''}</p>
         <div class="row">
           <span class="price">${formatKz(p.preco_promocional || p.preco)}</span>
-          <button class="btn-orange" style="padding:.5rem 1rem;font-size:.8rem;" onclick="event.preventDefault(); window.location.href='produto.html?id=${p.id}'">Adicionar</button>
+          <button class="add-round" onclick="event.preventDefault(); window.location.href='produto.html?id=${p.id}'" aria-label="Adicionar">+</button>
         </div>
       </div>
     </a>
   `).join('') || `<p class="empty-state">Sem produtos nesta categoria.</p>`;
+
+  const dotsBox = document.getElementById('fastfood-dots');
+  if(dotsBox) dotsBox.innerHTML = fastfood.map((_,i) => `<span class="dot ${i===0?'active':''}"></span>`).join('');
 
   bebidasBox.innerHTML = bebidas.map(p => `
     <a href="produto.html?id=${p.id}" class="drink-card">
       <div class="drink-img" style="${p.imagem_url?`background-image:url(${p.imagem_url})`:''}">${p.imagem_url?'':p.nome}</div>
       <h4>${p.nome}</h4>
       <p class="price">${formatKz(p.preco_promocional || p.preco)}</p>
-      <button class="btn-orange" style="padding:.4rem .9rem;font-size:.78rem;" onclick="event.preventDefault(); window.location.href='produto.html?id=${p.id}'">Adicionar</button>
+      <button class="add-round sm" onclick="event.preventDefault(); window.location.href='produto.html?id=${p.id}'" aria-label="Adicionar">+</button>
     </a>
   `).join('') || `<p class="empty-state">Sem bebidas disponíveis.</p>`;
 }
@@ -141,4 +205,4 @@ const revealObserver = new IntersectionObserver((entries) => {
 document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
 </script>
 </body>
-  </html>
+</html>
