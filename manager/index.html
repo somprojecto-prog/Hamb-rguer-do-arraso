@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Painel do Gestor — Hambúrguer do Arraso</title>
+<link rel="stylesheet" href="../assets/style.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+<div class="admin-shell">
+  <aside class="admin-sidebar">
+    <div class="brand">
+      <div class="logo-placeholder">HA</div>
+      <div>
+        <h1 style="font-size:1rem;font-weight:800;">Painel do Gestor</h1>
+        <span style="font-size:.7rem;color:var(--orange-light);">Hambúrguer do Arraso</span>
+      </div>
+    </div>
+    <a class="admin-nav-link active" data-view="geral" onclick="mudarView('geral')">📊 Visão geral</a>
+    <a class="admin-nav-link" data-view="produtos" onclick="mudarView('produtos')">📦 Produtos</a>
+    <a class="admin-nav-link" data-view="encomendas" onclick="mudarView('encomendas')">🧾 Encomendas</a>
+    <a class="admin-nav-link" data-view="reservas" onclick="mudarView('reservas')">🪑 Reservas</a>
+    <a class="admin-nav-link" data-view="clientes" onclick="mudarView('clientes')">👥 Clientes</a>
+    <a class="admin-nav-link" data-view="campos" onclick="mudarView('campos')">📝 Campos da Encomenda</a>
+    <div style="flex:1;"></div>
+    <a class="admin-nav-link" onclick="logout()">🚪 Sair</a>
+    <a class="admin-nav-link" href="../index.html">← Ver site</a>
+  </aside>
+
+  <main class="admin-main">
+
+    <div id="view-geral" class="admin-view active">
+      <div class="admin-toolbar"><h2>Visão geral</h2></div>
+      <div class="stat-grid" id="stat-grid"></div>
+      <h3 style="margin-bottom:1rem;">Últimas encomendas</h3>
+      <div id="ultimas-encomendas"></div>
+    </div>
+
+    <div id="view-produtos" class="admin-view">
+      <div class="admin-toolbar">
+        <h2>Produtos</h2>
+        <button class="btn-orange" onclick="abrirModalProduto(null)">+ Novo produto</button>
+      </div>
+      <div class="admin-card" style="padding:0;overflow-x:auto;">
+        <table class="admin-table">
+          <thead><tr><th></th><th>Nome</th><th>Categoria</th><th>Preço</th><th>Stock</th><th>Estado</th><th></th></tr></thead>
+          <tbody id="produtos-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="view-encomendas" class="admin-view">
+      <div class="admin-toolbar"><h2>Encomendas</h2></div>
+      <div id="encomendas-box"></div>
+    </div>
+
+    <div id="view-reservas" class="admin-view">
+      <div class="admin-toolbar"><h2>Reservas de mesa</h2></div>
+      <div id="reservas-box"></div>
+    </div>
+
+    <div id="view-clientes" class="admin-view">
+      <div class="admin-toolbar"><h2>Clientes</h2></div>
+      <div class="admin-card" style="padding:0;overflow-x:auto;">
+        <table class="admin-table">
+          <thead><tr><th>Nome</th><th>Telefone</th><th>Morada</th><th>Cliente desde</th><th>Encomendas</th></tr></thead>
+          <tbody id="clientes-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="view-campos" class="admin-view">
+      <div class="admin-toolbar"><h2>Campos da Encomenda</h2></div>
+      <p style="color:rgba(241,231,218,0.6);margin-bottom:1rem;font-size:.9rem;">Perguntas extra que o cliente preenche ao finalizar a encomenda.</p>
+      <div id="campos-box" style="display:flex;flex-direction:column;gap:.8rem;max-width:520px;"></div>
+      <button class="btn-outline" style="margin-top:1rem;" onclick="adicionarCampo()">+ Adicionar campo</button>
+    </div>
+
+  </main>
+</div>
+
+<div id="produto-modal" class="modal-backdrop">
+  <div class="overlay" onclick="fecharModalProduto()"></div>
+  <div class="modal-box" style="max-width:480px;">
+    <div class="modal-head">
+      <h3 id="produto-modal-titulo" class="font-display" style="font-size:1.2rem;">Novo produto</h3>
+      <span class="modal-close" onclick="fecharModalProduto()">&times;</span>
+    </div>
+    <div class="modal-body">
+      <form id="produto-form">
+        <div class="field"><label>Nome *</label><input id="pf-nome" type="text" required></div>
+        <div class="field"><label>Descrição</label><textarea id="pf-desc" rows="2"></textarea></div>
+        <div style="display:flex;gap:1rem;">
+          <div class="field" style="flex:1;"><label>Preço (Kz) *</label><input id="pf-preco" type="number" min="0" required></div>
+          <div class="field" style="flex:1;"><label>Preço promocional</label><input id="pf-promo" type="number" min="0" placeholder="opcional"></div>
+        </div>
+        <div style="display:flex;gap:1rem;">
+          <div class="field" style="flex:1;">
+            <label>Categoria</label>
+            <select id="pf-categoria"><option value="fastfood">Fast Food</option><option value="bebidas">Bebidas</option></select>
+          </div>
+          <div class="field" style="flex:1;"><label>Stock</label><input id="pf-stock" type="number" min="0" value="0"></div>
+        </div>
+        <div class="field"><label>URL da imagem</label><input id="pf-imagem" type="text" placeholder="https://…"></div>
+        <label style="display:flex;align-items:center;gap:.5rem;margin-bottom:1rem;">
+          <input id="pf-ativo" type="checkbox" checked style="width:auto;"> Produto ativo (visível no site)
+        </label>
+        <button type="submit" class="btn-orange block">Guardar produto</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div id="encomenda-modal" class="modal-backdrop">
+  <div class="overlay" onclick="document.getElementById('encomenda-modal').classList.remove('open')"></div>
+  <div class="modal-box" style="max-width:480px;">
+    <div class="modal-head">
+      <h3 class="font-display" style="font-size:1.2rem;">Detalhes da encomenda</h3>
+      <span class="modal-close" onclick="document.getElementById('encomenda-modal').classList.remove('open')">&times;</span>
+    </div>
+    <div class="modal-body" id="encomenda-modal-body"></div>
+  </div>
+</div>
+
+<script src="../assets/supabase-config.js"></script>
+<script src="../assets/common.js"></script>
+<script>
+let currentProdutoId = null;
+
+function mudarView(view){
+  document.querySelectorAll('.admin-nav-link[data-view]').forEach(a => a.classList.toggle('active', a.dataset.view === view));
+  document.querySelectorAll('.admin-view').forEach(v => v.classList.remove('active'));
+  document.getElementById('view-' + view).classList.add('active');
+  if(view === 'geral') carregarVisaoGeral();
+  if(view === 'produtos') carregarProdutos();
+  if(view === 'encomendas') carregarEncomendas();
+  if(view === 'reservas') carregarReservas();
+  if(view === 'clientes') carregarClientes();
+  if(view === 'campos') carregarCampos();
+}
+
+async function carregarVisaoGeral(){
+  const { data: orders } = await supabaseClient.from('orders').select('*').order('created_at', {ascending:false});
+  const { data: clientes } = await supabaseClient.from('profiles').select('id').eq('role','cliente');
+
+  const validas = (orders||[]).filter(o => o.status !== 'Cancelado');
+  const totalVendas = validas.reduce((s,o) => s + Number(o.total), 0);
+  const pendentes = (orders||[]).filter(o => o.status === 'Pendente').length;
+
+  document.getElementById('stat-grid').innerHTML = `
+    <div class="stat-card"><div class="label">Total vendido</div><div class="value">${formatKz(totalVendas)}</div></div>
+    <div class="stat-card"><div class="label">Encomendas</div><div class="value">${(orders||[]).length}</div></div>
+    <div class="stat-card"><div class="label">Pendentes</div><div class="value">${pendentes}</div></div>
+    <div class="stat-card"><div class="label">Clientes registados</div><div class="value">${(clientes||[]).length}</div></div>
+  `;
+
+  const ultimas = (orders||[]).slice(0,5);
+  document.getElementById('ultimas-encomendas').innerHTML = ultimas.length ? ultimas.map(o => `
+    <div class="order-card">
+      <div class="order-card-head">
+        <span>${new Date(o.created_at).toLocaleString('pt-PT')}</span>
+        <span class="status-pill status-${o.status.replace(' ','-')}">${o.status}</span>
+      </div>
+      <p style="font-weight:700;color:var(--orange-light);">${formatKz(o.total)}</p>
+    </div>
+  `).join('') : `<p class="empty-state">Ainda não há encomendas.</p>`;
+}
+
+let cacheProdutos = [];
+async function carregarProdutos(){
+  const { data, error } = await supabaseClient.from('products').select('*').order('nome');
+  cacheProdutos = data || [];
+  const tbody = document.getElementById('produtos-tbody');
+  if(error || !cacheProdutos.length){ tbody.innerHTML = `<tr><td colspan="7">Sem produtos.</td></tr>`; return; }
+  tbody.innerHTML = cacheProdutos.map(p => `
+    <tr>
+      <td><div class="admin-thumb" style="${p.imagem_url?`background-image:url(${p.imagem_url});background-size:cover;`:''}"></div></td>
+      <td>${p.nome}</td>
+      <td>${p.categoria === 'bebidas' ? 'Bebidas' : 'Fast Food'}</td>
+      <td>${p.preco_promocional ? `<s style="opacity:.5;">${formatKz(p.preco)}</s> ${formatKz(p.preco_promocional)}` : formatKz(p.preco)}</td>
+      <td>${p.stock}</td>
+      <td><span class="pill-toggle ${p.ativo?'on':'off'}" onclick="toggleAtivo('${p.id}', ${!p.ativo})">${p.ativo?'Ativo':'Inativo'}</span></td>
+      <td style="white-space:nowrap;">
+        <button class="btn-ghost" onclick='abrirModalProduto(${JSON.stringify(p).replace(/'/g,"&apos;")})'>Editar</button>
+        <button class="btn-ghost" style="color:#ffb4b4;" onclick="apagarProduto('${p.id}')">Apagar</button>
+      </td>
+    </tr>
+  `).join('');
+}
+async function toggleAtivo(id, novoValor){
+  await supabaseClient.from('products').update({ ativo: novoValor }).eq('id', id);
+  carregarProdutos();
+}
+async function apagarProduto(id){
+  if(!confirm('Apagar este produto definitivamente?')) return;
+  await supabaseClient.from('products').delete().eq('id', id);
+  carregarProdutos();
+}
+function abrirModalProduto(produto){
+  currentProdutoId = produto ? produto.id : null;
+  document.getElementById('produto-modal-titulo').textContent = produto ? 'Editar produto' : 'Novo produto';
+  document.getElementById('pf-nome').value = produto ? produto.nome : '';
+  document.getElementById('pf-desc').value = produto ? produto.descricao || '' : '';
+  document.getElementById('pf-preco').value = produto ? produto.preco : '';
+  document.getElementById('pf-promo').value = produto && produto.preco_promocional ? produto.preco_promocional : '';
+  document.getElementById('pf-categoria').value = produto ? produto.categoria : 'fastfood';
+  document.getElementById('pf-stock').value = produto ? produto.stock : 0;
+  document.getElementById('pf-imagem').value = produto ? produto.imagem_url || '' : '';
+  document.getElementById('pf-ativo').checked = produto ? produto.ativo : true;
+  document.getElementById('produto-modal').classList.add('open');
+}
+function fecharModalProduto(){ document.getElementById('produto-modal').classList.remove('open'); }
+
+document.getElementById('produto-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const payload = {
+    nome: document.getElementById('pf-nome').value.trim(),
+    descricao: document.getElementById('pf-desc').value.trim(),
+    preco: Number(document.getElementById('pf-preco').value),
+    preco_promocional: document.getElementById('pf-promo').value ? Number(document.getElementById('pf-promo').value) : null,
+    categoria: document.getElementById('pf-categoria').value,
+    stock: Number(document.getElementById('pf-stock').value),
+    imagem_url: document.getElementById('pf-imagem').value.trim() || null,
+    ativo: document.getElementById('pf-ativo').checked
+  };
+  if(currentProdutoId){
+    await supabaseClient.from('products').update(payload).eq('id', currentProdutoId);
+  } else {
+    await supabaseClient.from('products').insert(payload);
+  }
+  fecharModalProduto();
+  carregarProdutos();
+});
+
+const ESTADOS = ['Pendente','Pago','Em preparação','Enviado','Entregue','Cancelado'];
+async function carregarEncomendas(){
+  const box = document.getElementById('encomendas-box');
+  const { data, error } = await supabaseClient
+    .from('orders').select('*, order_items(*), profiles(nome, telefone)')
+    .order('created_at', { ascending:false });
+  if(error || !data.length){ box.innerHTML = `<p class="empty-state">Ainda não há encomendas.</p>`; return; }
+  box.innerHTML = data.map(o => `
+    <div class="order-card">
+      <div class="order-card-head">
+        <div>
+          <p style="font-weight:700;">${o.profiles ? o.profiles.nome : 'Cliente'}</p>
+          <p style="font-size:.8rem;color:rgba(241,231,218,0.5);">${new Date(o.created_at).toLocaleString('pt-PT')} · ${formatKz(o.total)}</p>
+        </div>
+        <select onchange="mudarEstado('${o.id}', this.value)" style="width:auto;padding:.4rem .7rem;font-size:.8rem;">
+          ${ESTADOS.map(s => `<option value="${s}" ${s===o.status?'selected':''}>${s}</option>`).join('')}
+        </select>
+      </div>
+      <button class="btn-ghost" onclick='verDetalheEncomenda(${JSON.stringify(o).replace(/'/g,"&apos;")})'>Ver detalhes →</button>
+    </div>
+  `).join('');
+}
+async function mudarEstado(orderId, status){
+  await supabaseClient.from('orders').update({ status }).eq('id', orderId);
+  showToast('Estado atualizado.');
+}
+function verDetalheEncomenda(o){
+  const itens = o.order_items.map(i => `<p style="font-size:.88rem;margin-bottom:.3rem;">${i.quantidade}x ${i.nome}${i.observacoes?` <span style="color:rgba(241,231,218,0.5);">(${i.observacoes})</span>`:''} — ${formatKz(i.preco*i.quantidade)}</p>`).join('');
+  const extras = Object.entries(o.campos_extra||{}).filter(([,v])=>v).map(([k,v])=>`<p style="font-size:.85rem;color:rgba(241,231,218,0.6);">${k}: ${v}</p>`).join('');
+  document.getElementById('encomenda-modal-body').innerHTML = `
+    <p><strong>${o.profiles ? o.profiles.nome : ''}</strong> · ${o.telefone}</p>
+    <p style="color:rgba(241,231,218,0.6);margin-bottom:.8rem;">📍 ${o.morada}<br>💳 ${o.pagamento}</p>
+    ${itens}
+    ${extras}
+    <p style="font-weight:800;margin-top:.8rem;color:var(--orange-light);">Total: ${formatKz(o.total)}</p>
+  `;
+  document.getElementById('encomenda-modal').classList.add('open');
+}
+
+async function carregarReservas(){
+  const box = document.getElementById('reservas-box');
+  const { data, error } = await supabaseClient.from('reservations').select('*').order('created_at', {ascending:false});
+  if(error || !data.length){ box.innerHTML = `<p class="empty-state">Ainda não há reservas.</p>`; return; }
+  box.innerHTML = data.map(r => `
+    <div class="order-card">
+      <p style="font-weight:700;">${r.nome} · ${r.telefone}</p>
+      <p style="font-size:.85rem;color:rgba(241,231,218,0.6);">📅 ${r.data_reserva} às ${r.hora_reserva} · ${r.pessoas} pessoa(s) · ${r.tipo_mesa}</p>
+      ${r.observacoes ? `<p style="font-size:.8rem;color:rgba(241,231,218,0.5);">Obs: ${r.observacoes}</p>` : ''}
+    </div>
+  `).join('');
+}
+
+async function carregarClientes(){
+  const tbody = document.getElementById('clientes-tbody');
+  const { data: clientes, error } = await supabaseClient.from('profiles').select('*').eq('role','cliente').order('created_at', {ascending:false});
+  if(error || !clientes.length){ tbody.innerHTML = `<tr><td colspan="5">Sem clientes registados.</td></tr>`; return; }
+  const { data: orders } = await supabaseClient.from('orders').select('cliente_id');
+  const contagens = {};
+  (orders||[]).forEach(o => contagens[o.cliente_id] = (contagens[o.cliente_id]||0) + 1);
+  tbody.innerHTML = clientes.map(c => `
+    <tr>
+      <td>${c.nome || '(sem nome)'}</td>
+      <td>${c.telefone || '—'}</td>
+      <td>${c.morada || '—'}</td>
+      <td>${new Date(c.created_at).toLocaleDateString('pt-PT')}</td>
+      <td>${contagens[c.id] || 0}</td>
+    </tr>
+  `).join('');
+}
+
+async function carregarCampos(){
+  const box = document.getElementById('campos-box');
+  const { data } = await supabaseClient.from('order_field_defs').select('*').order('ordem');
+  if(!data || !data.length){ box.innerHTML = `<p class="empty-state">Ainda não adicionaste nenhum campo extra.</p>`; return; }
+  box.innerHTML = data.map(f => `
+    <div class="admin-card">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-bottom:.6rem;">
+        <input type="text" value="${f.label}" onchange="atualizarCampo('${f.id}','label',this.value)" placeholder="Pergunta ao cliente">
+        <select onchange="atualizarCampo('${f.id}','type',this.value)">
+          <option value="text" ${f.type==='text'?'selected':''}>Texto curto</option>
+          <option value="textarea" ${f.type==='textarea'?'selected':''}>Texto longo</option>
+          <option value="select" ${f.type==='select'?'selected':''}>Lista de opções</option>
+        </select>
+      </div>
+      ${f.type === 'select' ? `<input type="text" value="${(f.options||[]).join(', ')}" onchange="atualizarCampoOptions('${f.id}',this.value)" placeholder="Opções separadas por vírgula" style="margin-bottom:.6rem;">` : ''}
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <label style="display:flex;align-items:center;gap:.5rem;margin:0;font-size:.85rem;">
+          <input type="checkbox" style="width:auto;" ${f.required?'checked':''} onchange="atualizarCampo('${f.id}','required',this.checked)"> Obrigatório
+        </label>
+        <button class="btn-ghost" style="color:#ffb4b4;" onclick="apagarCampo('${f.id}')">Remover</button>
+      </div>
+    </div>
+  `).join('');
+}
+async function adicionarCampo(){
+  await supabaseClient.from('order_field_defs').insert({ label:'Nova pergunta', type:'text', ordem: Date.now() });
+  carregarCampos();
+}
+async function atualizarCampo(id, campo, valor){
+  await supabaseClient.from('order_field_defs').update({ [campo]: valor }).eq('id', id);
+  if(campo === 'type') carregarCampos();
+}
+async function atualizarCampoOptions(id, valor){
+  const options = valor.split(',').map(s => s.trim()).filter(Boolean);
+  await supabaseClient.from('order_field_defs').update({ options }).eq('id', id);
+}
+async function apagarCampo(id){
+  await supabaseClient.from('order_field_defs').delete().eq('id', id);
+  carregarCampos();
+}
+
+async function init(){
+  const auth = await requireAdmin();
+  if(!auth) return;
+  carregarVisaoGeral();
+}
+init();
+</script>
+</body>
+  </html>
