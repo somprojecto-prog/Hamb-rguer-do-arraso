@@ -20,12 +20,38 @@ function showToast(msg){
   window.__toastTimer = setTimeout(() => el.classList.remove('show'), 2600);
 }
 
+// Devolve a sessão atual (ou null se não houver ninguém autenticado)
+async function applySiteSettings(){
+  try{
+    const { data } = await supabaseClient.from('site_settings').select('*').eq('id',1).single();
+    if(!data) return;
+    if(data.cor_laranja) document.documentElement.style.setProperty('--orange', data.cor_laranja);
+    if(data.cor_laranja_clara) document.documentElement.style.setProperty('--orange-light', data.cor_laranja_clara);
+    if(data.logo_url){
+      document.querySelectorAll('.logo-placeholder').forEach(el => {
+        el.style.backgroundImage = `url(${data.logo_url})`;
+        el.style.backgroundSize = 'cover';
+        el.textContent = '';
+      });
+    }
+    if(data.hero_url){
+      const hero = document.querySelector('header.wood-texture');
+      if(hero){
+        hero.style.backgroundImage = `linear-gradient(rgba(18,18,18,0.5),rgba(18,18,18,0.5)), url(${data.hero_url})`;
+        hero.style.backgroundSize = 'cover';
+        hero.style.backgroundPosition = 'center';
+      }
+    }
+  }catch(e){ console.warn('Não foi possível aplicar as configurações de aparência.', e); }
+}
+
 async function getSession(){
   const { data, error } = await supabaseClient.auth.getSession();
   if(error){ console.warn(error); return null; }
   return data.session;
 }
 
+// Devolve o perfil (nome, telefone, morada, role) do utilizador autenticado
 async function getProfile(userId){
   const { data, error } = await supabaseClient
     .from('profiles')
@@ -41,6 +67,8 @@ async function logout(){
   window.location.href = 'index.html';
 }
 
+// Bloqueia o acesso a páginas que exigem sessão iniciada (área do cliente).
+// Devolve {session, profile} se tudo OK, ou redireciona para o login.
 async function requireLogin(redirectTo){
   const session = await getSession();
   if(!session){
@@ -51,6 +79,9 @@ async function requireLogin(redirectTo){
   return { session, profile };
 }
 
+// Bloqueia o acesso ao painel do gestor a quem não for admin.
+// A verificação real (a que conta) acontece nas políticas RLS da base de
+// dados — isto aqui é só para não deixar a interface aberta a mostrar dados.
 async function requireAdmin(){
   const session = await getSession();
   if(!session){
@@ -69,4 +100,4 @@ async function requireAdmin(){
     return null;
   }
   return { session, profile };
-      }
+}
