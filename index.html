@@ -24,8 +24,24 @@
 </header>
 
 <main class="wrap" style="padding:3.5rem 0;">
-  <h2 style="font-size:1.5rem;margin-bottom:1.5rem;">Mais pedidos</h2>
-  <div id="destaques" class="product-grid"></div>
+
+  <div class="carousel-wrap">
+    <p class="section-eyebrow">FAST FOOD</p>
+    <h2 class="section-title">Do nosso fogão para si</h2>
+    <button class="carousel-arrow left" onclick="scrollCarousel('fastfood-track',-260)">‹</button>
+    <button class="carousel-arrow right" onclick="scrollCarousel('fastfood-track',260)">›</button>
+    <div id="fastfood-track" class="carousel-track"></div>
+  </div>
+
+  <div class="carousel-wrap">
+    <p class="section-eyebrow">BEBIDAS</p>
+    <h2 class="section-title">Para acompanhar</h2>
+    <button class="carousel-arrow left" onclick="scrollCarousel('bebidas-track',-180)">‹</button>
+    <button class="carousel-arrow right" onclick="scrollCarousel('bebidas-track',180)">›</button>
+    <div id="bebidas-track" class="carousel-track"></div>
+  </div>
+  <p class="age-notice">🔞 Bebidas alcoólicas destinadas apenas a maiores de 18 anos.</p>
+
 </main>
 
 <footer class="charcoal-texture" style="padding:2.5rem 0;border-top:1px solid rgba(241,231,218,0.08);">
@@ -45,25 +61,50 @@ document.getElementById('ano').textContent = new Date().getFullYear();
 renderTopbar('home');
 renderBottomNav('home');
 
+function scrollCarousel(id, amount){
+  document.getElementById(id).scrollBy({ left: amount, behavior:'smooth' });
+}
+
 async function carregarDestaques(){
-  const box = document.getElementById('destaques');
+  const fastfoodBox = document.getElementById('fastfood-track');
+  const bebidasBox = document.getElementById('bebidas-track');
+
   const { data, error } = await supabaseClient
     .from('products')
     .select('*')
     .eq('ativo', true)
-    .order('created_at', { ascending:false })
-    .limit(4);
-  if(error){ box.innerHTML = `<p class="empty-state">Não foi possível carregar os produtos.</p>`; return; }
-  if(!data.length){ box.innerHTML = `<p class="empty-state">Ainda não há produtos disponíveis.</p>`; return; }
-  box.innerHTML = data.map(p => `
-    <a href="produto.html?id=${p.id}" class="product-card burn-edge card-hover">
-      <div class="product-img" style="${p.imagem_url ? `background-image:url(${p.imagem_url})` : ''}">${p.imagem_url ? '' : 'Sem foto'}</div>
+    .order('created_at', { ascending:false });
+
+  if(error || !data){
+    fastfoodBox.innerHTML = `<p class="empty-state">Não foi possível carregar os produtos.</p>`;
+    return;
+  }
+
+  const fastfood = data.filter(p => p.categoria === 'fastfood');
+  const bebidas = data.filter(p => p.categoria === 'bebidas');
+
+  fastfoodBox.innerHTML = fastfood.map(p => `
+    <a href="produto.html?id=${p.id}" class="food-card burn-edge card-hover">
+      <div class="product-img" style="${p.imagem_url?`background-image:url(${p.imagem_url})`:''}">${p.imagem_url?'':`[ Foto — ${p.nome} ]`}</div>
       <div class="info">
         <h4>${p.nome}</h4>
-        <p class="price">${p.preco_promocional ? formatKz(p.preco_promocional) : formatKz(p.preco)}</p>
+        <p class="desc">${p.descricao || ''}</p>
+        <div class="row">
+          <span class="price">${formatKz(p.preco_promocional || p.preco)}</span>
+          <button class="btn-orange" style="padding:.5rem 1rem;font-size:.8rem;" onclick="event.preventDefault(); window.location.href='produto.html?id=${p.id}'">Adicionar</button>
+        </div>
       </div>
     </a>
-  `).join('');
+  `).join('') || `<p class="empty-state">Sem produtos nesta categoria.</p>`;
+
+  bebidasBox.innerHTML = bebidas.map(p => `
+    <a href="produto.html?id=${p.id}" class="drink-card">
+      <div class="drink-img" style="${p.imagem_url?`background-image:url(${p.imagem_url})`:''}">${p.imagem_url?'':p.nome}</div>
+      <h4>${p.nome}</h4>
+      <p class="price">${formatKz(p.preco_promocional || p.preco)}</p>
+      <button class="btn-orange" style="padding:.4rem .9rem;font-size:.78rem;" onclick="event.preventDefault(); window.location.href='produto.html?id=${p.id}'">Adicionar</button>
+    </a>
+  `).join('') || `<p class="empty-state">Sem bebidas disponíveis.</p>`;
 }
 carregarDestaques();
 </script>
