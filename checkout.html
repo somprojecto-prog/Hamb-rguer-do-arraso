@@ -19,12 +19,15 @@
   </div>
 </main>
 
+<div id="bottom-nav-mount"></div>
+
 <script src="assets/supabase-config.js"></script>
 <script src="assets/common.js"></script>
 <script src="assets/cart.js"></script>
 <script src="assets/layout.js"></script>
 <script>
 renderTopbar('loja');
+renderBottomNav('carrinho');
 
 let userProfile = null;
 let campoDefs = [];
@@ -50,8 +53,7 @@ async function init(){
 
 function renderCheckoutForm(cart){
   const resumo = cart.map(item => {
-    const extrasTotal = (item.extras||[]).reduce((s,e)=>s+Number(e.preco||0),0);
-    const linePrice = (Number(item.preco) + extrasTotal) * item.quantidade;
+    const linePrice = (Number(item.preco) + lineExtrasTotal(item)) * item.quantidade;
     return `<div style="display:flex;justify-content:space-between;font-size:.9rem;margin-bottom:.4rem;">
       <span>${item.quantidade}x ${item.nome}${item.obs ? ` <span style="color:rgba(241,231,218,0.5);">(${item.obs})</span>` : ''}</span>
       <span style="color:var(--orange-light);">${formatKz(linePrice)}</span>
@@ -152,7 +154,7 @@ async function enviarEncomenda(e){
     preco: item.preco,
     quantidade: item.quantidade,
     observacoes: item.obs || '',
-    extras: item.extras || []
+    extras: item.opcoesEscolhidas || []
   }));
   await supabaseClient.from('order_items').insert(itens);
 

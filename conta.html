@@ -27,12 +27,15 @@
   </div>
 </main>
 
+<div id="bottom-nav-mount"></div>
+
 <script src="assets/supabase-config.js"></script>
 <script src="assets/common.js"></script>
 <script src="assets/cart.js"></script>
 <script src="assets/layout.js"></script>
 <script>
 renderTopbar();
+renderBottomNav();
 let sessao = null, perfil = null;
 
 function mudarTab(tab){

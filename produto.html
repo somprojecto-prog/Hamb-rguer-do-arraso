@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Produto — Hambúrguer do Arraso</title>
+<link rel="stylesheet" href="assets/style.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+<div id="topbar-mount"></div>
+
+<main class="wrap-sm" style="padding:1.5rem 0 3rem;">
+  <div id="produto-content">
+    <div class="empty-state"><span class="spinner"></span></div>
+  </div>
+
+  <div id="relacionados-wrap" style="margin-top:2.5rem;"></div>
+</main>
+
+<div id="bottom-nav-mount"></div>
+
+<script src="assets/supabase-config.js"></script>
+<script src="assets/common.js"></script>
+<script src="assets/cart.js"></script>
+<script src="assets/layout.js"></script>
+<script>
+renderTopbar();
+renderBottomNav();
+
+let produto = null;
+let singleSel = {};   // { nomeDoGrupo: "escolha" }
+let multiSel = {};    // { nomeDoGrupo: Set("escolha1","escolha2") }
+let qtd = 1;
+
+async function init(){
+  const id = new URLSearchParams(window.location.search).get('id');
+  if(!id){ window.location.href = 'loja.html'; return; }
+
+  const { data, error } = await supabaseClient.from('products').select('*').eq('id', id).single();
+  if(error || !data){
+    document.getElementById('produto-content').innerHTML = `<p class="empty-state">Produto não encontrado.</p>`;
+    return;
+  }
+  produto = data;
+
+  // pré-seleciona a primeira opção de cada grupo de escolha única
+  (produto.opcoes||[]).forEach(grupo => {
+    if(grupo.tipo === 'single' && grupo.escolhas.length){
+      singleSel[grupo.nome] = grupo.escolhas[0].nome;
+    }
+    if(grupo.tipo === 'multi'){ multiSel[grupo.nome] = new Set(); }
+  });
+
+  render();
+  carregarRelacionados();
+}
+
+function precoBase(){ return produto.preco_promocional || produto.preco; }
+
+function precoExtras(){
+  let total = 0;
+  (produto.opcoes||[]).forEach(grupo => {
+    if(grupo.tipo === 'multi'){
+      (multiSel[grupo.nome] || new Set()).forEach(nomeEscolha => {
+        const escolha = grupo.escolhas.find(e => e.nome === nomeEscolha);
+        if(escolha) total += Number(escolha.preco || 0);
+      });
+    }
+  });
+  return total;
+}
+
+function render(){
+  const gruposHtml = (produto.opcoes||[]).map(grupo => {
+    if(grupo.tipo === 'single'){
+      return `
+        <div class="option-group">
+          <h4>${grupo.nome}</h4>
+          <div class="choice-pills">
+            ${grupo.escolhas.map(e => `
+              <div class="choice-pill ${singleSel[grupo.nome]===e.nome?'selected':''}" onclick="selecionarSingle('${grupo.nome.replace(/'/g,"\\'")}','${e.nome.replace(/'/g,"\\'")}')">${e.nome}</div>
+            `).join('')}
+          </div>
+        </div>`;
+    }
+    return `
+      <div class="option-group">
+        <h4>${grupo.nome}</h4>
+        <div class="admin-card" style="padding:.3rem 1rem;">
+          ${grupo.escolhas.map(e => `
+            <div class="choice-row">
+              <label>
+                <input type="checkbox" onchange="toggleMulti('${grupo.nome.replace(/'/g,"\\'")}','${e.nome.replace(/'/g,"\\'")}',this.checked)">
+                ${e.nome}
+              </label>
+              ${e.preco ? `<span style="color:var(--orange-light);">${formatKz(e.preco)}</span>` : ''}
+            </div>
+          `).join('')}
+        </div>
+      </div>`;
+  }).join('');
+
+  document.getElementById('produto-content').innerHTML = `
+    <a href="loja.html" class="back-link">← Voltar</a>
+    <div class="product-hero-img" style="${produto.imagem_url?`background-image:url(${produto.imagem_url})`:''}">${produto.imagem_url?'':'Sem foto'}</div>
+    <h1 class="font-display" style="font-size:1.6rem;margin-bottom:.3rem;">${produto.nome}</h1>
+    <p style="color:var(--orange-light);font-weight:800;font-size:1.2rem;margin-bottom:.6rem;">${formatKz(precoBase())}</p>
+    <p style="color:rgba(241,231,218,0.65);margin-bottom:1.5rem;">${produto.descricao||''}</p>
+
+    ${gruposHtml ? `<h3 style="font-size:1.1rem;margin-bottom:1rem;">Personalize do seu jeito</h3>${gruposHtml}` : ''}
+
+    <div class="field">
+      <label>Pedido adicional (opcional)</label>
+      <input id="obs-input" type="text" placeholder="Ex: sem cebola">
+    </div>
+
+    <div style="display:flex;align-items:center;justify-content:space-between;margin:1.5rem 0;">
+      <span>Quantidade</span>
+      <div class="qty-stepper">
+        <button onclick="mudarQtd(-1)">−</button>
+        <span id="qtd-label">${qtd}</span>
+        <button onclick="mudarQtd(1)">+</button>
+      </div>
+    </div>
+
+    <button class="btn-orange block" onclick="confirmarAdicionar()" style="margin-bottom:.8rem;">
+      Adicionar ao Carrinho — <span id="total-label">${formatKz((precoBase()+precoExtras())*qtd)}</span>
+    </button>
+    <a href="carrinho.html" class="btn-outline block">Ver Carrinho (<span class="js-cart-badge">${cartCount()}</span>)</a>
+  `;
+}
+
+function selecionarSingle(grupo, escolha){
+  singleSel[grupo] = escolha;
+  render();
+}
+function toggleMulti(grupo, escolha, checked){
+  if(!multiSel[grupo]) multiSel[grupo] = new Set();
+  if(checked) multiSel[grupo].add(escolha); else multiSel[grupo].delete(escolha);
+  atualizarTotal();
+}
+function mudarQtd(delta){
+  qtd = Math.max(1, qtd + delta);
+  document.getElementById('qtd-label').textContent = qtd;
+  atualizarTotal();
+}
+function atualizarTotal(){
+  document.getElementById('total-label').textContent = formatKz((precoBase()+precoExtras())*qtd);
+}
+
+function confirmarAdicionar(){
+  const opcoesEscolhidas = [];
+  Object.entries(singleSel).forEach(([grupo, escolha]) => {
+    opcoesEscolhidas.push({ grupo, escolha, preco: 0 });
+  });
+  Object.entries(multiSel).forEach(([grupo, set]) => {
+    const grupoDef = (produto.opcoes||[]).find(g => g.nome === grupo);
+    set.forEach(escolha => {
+      const item = grupoDef.escolhas.find(e => e.nome === escolha);
+      opcoesEscolhidas.push({ grupo, escolha, preco: item ? Number(item.preco||0) : 0 });
+    });
+  });
+  const obs = document.getElementById('obs-input').value.trim();
+  addToCartItem(produto, qtd, opcoesEscolhidas, obs);
+  showToast(`${produto.nome} adicionado ao carrinho`);
+  qtd = 1;
+  render();
+}
+
+async function carregarRelacionados(){
+  const { data } = await supabaseClient
+    .from('products').select('*')
+    .eq('categoria', produto.categoria).eq('ativo', true)
+    .neq('id', produto.id).limit(3);
+  if(!data || !data.length) return;
+  document.getElementById('relacionados-wrap').innerHTML = `
+    <h3 style="font-size:1.2rem;margin-bottom:1rem;">Você também pode gostar</h3>
+    <div class="product-grid">
+      ${data.map(p => `
+        <a href="produto.html?id=${p.id}" class="product-card burn-edge card-hover">
+          <div class="product-img" style="height:120px;${p.imagem_url?`background-image:url(${p.imagem_url})`:''}">${p.imagem_url?'':'Sem foto'}</div>
+          <div class="info">
+            <h4>${p.nome}</h4>
+            <p class="price">${formatKz(p.preco_promocional || p.preco)}</p>
+          </div>
+        </a>
+      `).join('')}
+    </div>
+  `;
+}
+
+init();
+</script>
+</body>
+</html>

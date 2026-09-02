@@ -34,6 +34,8 @@
   </div>
 </footer>
 
+<div id="bottom-nav-mount"></div>
+
 <script src="assets/supabase-config.js"></script>
 <script src="assets/common.js"></script>
 <script src="assets/cart.js"></script>
@@ -41,6 +43,7 @@
 <script>
 document.getElementById('ano').textContent = new Date().getFullYear();
 renderTopbar('home');
+renderBottomNav('home');
 
 async function carregarDestaques(){
   const box = document.getElementById('destaques');
@@ -53,7 +56,7 @@ async function carregarDestaques(){
   if(error){ box.innerHTML = `<p class="empty-state">Não foi possível carregar os produtos.</p>`; return; }
   if(!data.length){ box.innerHTML = `<p class="empty-state">Ainda não há produtos disponíveis.</p>`; return; }
   box.innerHTML = data.map(p => `
-    <a href="loja.html?produto=${p.id}" class="product-card burn-edge card-hover">
+    <a href="produto.html?id=${p.id}" class="product-card burn-edge card-hover">
       <div class="product-img" style="${p.imagem_url ? `background-image:url(${p.imagem_url})` : ''}">${p.imagem_url ? '' : 'Sem foto'}</div>
       <div class="info">
         <h4>${p.nome}</h4>

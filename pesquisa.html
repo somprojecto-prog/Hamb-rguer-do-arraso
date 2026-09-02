@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pesquisar — Hambúrguer do Arraso</title>
+<link rel="stylesheet" href="assets/style.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+<div id="topbar-mount"></div>
+
+<main class="wrap-sm" style="padding:2rem 0 3rem;">
+  <h1 style="font-size:1.4rem;margin-bottom:1rem;">Pesquisar</h1>
+  <div class="field">
+    <input id="search-input" type="text" placeholder="Procurar hambúrguer, bebida…" oninput="filtrar(this.value)" autofocus>
+  </div>
+
+  <div id="suggestions" style="display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:1.5rem;"></div>
+  <div id="results" style="display:flex;flex-direction:column;gap:.7rem;"></div>
+</main>
+
+<div id="bottom-nav-mount"></div>
+
+<script src="assets/supabase-config.js"></script>
+<script src="assets/common.js"></script>
+<script src="assets/cart.js"></script>
+<script src="assets/layout.js"></script>
+<script>
+renderTopbar();
+renderBottomNav('pesquisa');
+
+let todos = [];
+
+async function init(){
+  const { data } = await supabaseClient.from('products').select('*').eq('ativo', true).order('nome');
+  todos = data || [];
+  document.getElementById('suggestions').innerHTML = todos.map(p => `
+    <button class="filter-chip" onclick="selecionar('${p.nome.replace(/'/g,"\\'")}')">${p.nome}</button>
+  `).join('');
+  filtrar('');
+}
+
+function selecionar(nome){
+  document.getElementById('search-input').value = nome;
+  filtrar(nome);
+}
+
+function filtrar(q){
+  q = q.trim().toLowerCase();
+  const box = document.getElementById('results');
+  const lista = todos.filter(p => !q || p.nome.toLowerCase().includes(q) || (p.descricao||'').toLowerCase().includes(q));
+  if(!lista.length){ box.innerHTML = `<p class="empty-state">Nenhum item encontrado.</p>`; return; }
+  box.innerHTML = lista.map(p => `
+    <a href="produto.html?id=${p.id}" class="admin-card" style="display:flex;align-items:center;gap:.8rem;">
+      <div class="admin-thumb" style="${p.imagem_url?`background-image:url(${p.imagem_url});background-size:cover;`:''}"></div>
+      <div style="flex:1;">
+        <p style="font-weight:600;">${p.nome}</p>
+        <p style="color:var(--orange-light);font-size:.85rem;">${formatKz(p.preco_promocional || p.preco)}</p>
+      </div>
+    </a>
+  `).join('');
+}
+init();
+</script>
+</body>
+</html>
