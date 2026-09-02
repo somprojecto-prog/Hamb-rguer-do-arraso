@@ -561,13 +561,12 @@ body{ padding-bottom: calc(64px + env(safe-area-inset-bottom)); }
 }
 .hero-badge span{ font-family:'Playfair Display',serif; font-size:1.1rem; color:var(--orange-light); font-weight:900; }
 @keyframes spinSlow{ from{ transform:rotate(0); } to{ transform:rotate(360deg); } }
-@media (max-width:760px){ .hero-badge{ width:78px; height:78px; font-size:.55rem; top:-8px; right:2px; } .hero-badge span{ font-size:.95rem; } }
-
-.feature-bar{
-  display:grid; grid-template-columns:repeat(4,1fr); gap:1rem;
-  background:#1a1210; border:1px solid rgba(230,81,0,0.15); border-radius:14px;
-  padding:1.2rem; margin:2rem 0;
-}
+@media (max-width:760px){
+  .feature-bar{ grid-template-columns:repeat(2,1fr); gap:.7rem; padding:.85rem; margin:1.2rem 0; }
+  .feature-item svg{ width:20px; height:20px; }
+  .feature-item h5{ font-size:.75rem; }
+  .feature-item p{ font-size:.65rem; }
+     }
 .feature-item{ display:flex; align-items:flex-start; gap:.6rem; }
 .feature-item svg{ flex-shrink:0; margin-top:.1rem; }
 .feature-item h5{ font-size:.82rem; margin-bottom:.15rem; }
