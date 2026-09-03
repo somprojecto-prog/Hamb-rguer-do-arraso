@@ -153,8 +153,26 @@
             <input id="ap-cor2" type="color" style="width:60px;height:44px;padding:2px;">
           </div>
         </div>
-        <div class="field"><label>URL do logótipo</label><input id="ap-logo" type="text" placeholder="https://…"></div>
-        <div class="field"><label>URL da imagem de fundo (página inicial)</label><input id="ap-hero" type="text" placeholder="https://…"></div>
+        <div class="field">
+          <label>Logótipo</label>
+          <div class="image-upload-box" onclick="document.getElementById('ap-logo-file').click()">
+            <img id="ap-logo-preview-img" style="display:none;">
+            <span id="ap-logo-placeholder">Toque para escolher uma foto</span>
+          </div>
+          <input type="file" id="ap-logo-file" accept="image/*" style="display:none;" onchange="handleImagemUpload(this,'ap-logo')">
+          <input type="hidden" id="ap-logo">
+          <p id="ap-logo-status" style="font-size:.78rem;margin-top:.4rem;"></p>
+        </div>
+        <div class="field">
+          <label>Imagem de fundo (página inicial)</label>
+          <div class="image-upload-box" onclick="document.getElementById('ap-hero-file').click()">
+            <img id="ap-hero-preview-img" style="display:none;">
+            <span id="ap-hero-placeholder">Toque para escolher uma foto</span>
+          </div>
+          <input type="file" id="ap-hero-file" accept="image/*" style="display:none;" onchange="handleImagemUpload(this,'ap-hero')">
+          <input type="hidden" id="ap-hero">
+          <p id="ap-hero-status" style="font-size:.78rem;margin-top:.4rem;"></p>
+        </div>
         <button class="btn-orange" onclick="guardarAparencia()">Guardar aparência</button>
         <p id="aparencia-status" style="font-size:.85rem;color:#8bd18f;margin-top:.6rem;"></p>
       </div>
@@ -228,7 +246,16 @@
           </div>
           <div class="field" style="flex:1;"><label>Stock</label><input id="pf-stock" type="number" min="0" value="0"></div>
         </div>
-        <div class="field"><label>URL da imagem</label><input id="pf-imagem" type="text" placeholder="https://…"></div>
+        <div class="field">
+          <label>Foto do produto</label>
+          <div class="image-upload-box" onclick="document.getElementById('pf-imagem-file').click()">
+            <img id="pf-imagem-preview-img" style="display:none;">
+            <span id="pf-imagem-placeholder">Toque para escolher uma foto</span>
+          </div>
+          <input type="file" id="pf-imagem-file" accept="image/*" style="display:none;" onchange="handleImagemUpload(this,'pf-imagem')">
+          <input type="hidden" id="pf-imagem">
+          <p id="pf-imagem-status" style="font-size:.78rem;margin-top:.4rem;"></p>
+        </div>
         <label style="display:flex;align-items:center;gap:.5rem;margin-bottom:1rem;">
           <input id="pf-ativo" type="checkbox" checked style="width:auto;"> Produto ativo (visível no site)
         </label>
@@ -378,6 +405,61 @@ async function apagarProduto(id){
   await supabaseClient.from('products').delete().eq('id', id);
   carregarProdutos();
 }
+/* ================= UPLOAD DE IMAGENS ================= */
+// hiddenId = id do campo escondido que guarda o URL final (ex: "pf-imagem")
+// Espera também: {hiddenId}-file (input file), {hiddenId}-preview-img (img),
+// {hiddenId}-placeholder (texto "toque para escolher"), {hiddenId}-status (mensagem)
+async function handleImagemUpload(inputEl, hiddenId){
+  const file = inputEl.files[0];
+  if(!file) return;
+  const statusEl = document.getElementById(hiddenId + '-status');
+  const previewImg = document.getElementById(hiddenId + '-preview-img');
+  const placeholder = document.getElementById(hiddenId + '-placeholder');
+
+  if(!file.type.startsWith('image/')){
+    statusEl.textContent = 'Escolha um ficheiro de imagem (jpg, png, webp…).';
+    statusEl.style.color = '#e57373';
+    inputEl.value = '';
+    return;
+  }
+  if(file.size > 5 * 1024 * 1024){
+    statusEl.textContent = 'Imagem demasiado grande (máximo 5 MB).';
+    statusEl.style.color = '#e57373';
+    inputEl.value = '';
+    return;
+  }
+
+  statusEl.textContent = 'A enviar…';
+  statusEl.style.color = 'rgba(241,231,218,0.55)';
+  try{
+    const url = await uploadImagem(file);
+    document.getElementById(hiddenId).value = url;
+    if(previewImg){ previewImg.src = url; previewImg.style.display = 'block'; }
+    if(placeholder) placeholder.style.display = 'none';
+    statusEl.textContent = 'Imagem enviada.';
+    statusEl.style.color = '#8bd18f';
+  }catch(err){
+    console.error(err);
+    statusEl.textContent = 'Não foi possível enviar a imagem. Tente novamente.';
+    statusEl.style.color = '#e57373';
+  }
+  inputEl.value = '';
+}
+// Mostra uma imagem já guardada (ex: ao abrir "Editar produto") na pré-visualização
+function mostrarPreviewImagem(hiddenId, url){
+  document.getElementById(hiddenId).value = url || '';
+  const previewImg = document.getElementById(hiddenId + '-preview-img');
+  const placeholder = document.getElementById(hiddenId + '-placeholder');
+  if(url){
+    previewImg.src = url; previewImg.style.display = 'block';
+    if(placeholder) placeholder.style.display = 'none';
+  }else{
+    previewImg.style.display = 'none';
+    if(placeholder) placeholder.style.display = 'block';
+  }
+  document.getElementById(hiddenId + '-status').textContent = '';
+}
+
 function abrirModalProduto(produto){
   currentProdutoId = produto ? produto.id : null;
   currentOpcoes = produto && produto.opcoes ? JSON.parse(JSON.stringify(produto.opcoes)) : [];
@@ -388,7 +470,7 @@ function abrirModalProduto(produto){
   document.getElementById('pf-promo').value = produto && produto.preco_promocional ? produto.preco_promocional : '';
   document.getElementById('pf-categoria').value = produto ? produto.categoria : 'fastfood';
   document.getElementById('pf-stock').value = produto ? produto.stock : 0;
-  document.getElementById('pf-imagem').value = produto ? produto.imagem_url || '' : '';
+  mostrarPreviewImagem('pf-imagem', produto ? produto.imagem_url || '' : '');
   document.getElementById('pf-ativo').checked = produto ? produto.ativo : true;
   renderOpcoesEditor();
   document.getElementById('produto-modal').classList.add('open');
@@ -543,8 +625,8 @@ async function carregarAparencia(){
   if(!data) return;
   document.getElementById('ap-cor1').value = data.cor_laranja || '#E65100';
   document.getElementById('ap-cor2').value = data.cor_laranja_clara || '#FF8A3D';
-  document.getElementById('ap-logo').value = data.logo_url || '';
-  document.getElementById('ap-hero').value = data.hero_url || '';
+  mostrarPreviewImagem('ap-logo', data.logo_url || '');
+  mostrarPreviewImagem('ap-hero', data.hero_url || '');
 }
 async function guardarAparencia(){
   const payload = {
