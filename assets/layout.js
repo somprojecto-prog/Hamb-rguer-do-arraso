@@ -13,8 +13,8 @@ async function renderTopbar(activePage){
         <a href="index.html" class="brand">
           <div class="logo-placeholder">HA</div>
           <div>
-            <h1>Hambúrguer do Arraso</h1>
-            <span>O melhor da banda</span>
+            <h1 class="js-site-name">Hambúrguer do Arraso</h1>
+            <span class="js-site-slogan">O melhor da banda</span>
           </div>
         </a>
         <nav class="topnav" style="display:none" id="topnav-desktop">
