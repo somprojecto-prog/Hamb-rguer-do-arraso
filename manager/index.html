@@ -18,13 +18,14 @@
         <span style="font-size:.7rem;color:var(--orange-light);">Hambúrguer do Arraso</span>
       </div>
     </div>
-    <a class="admin-nav-link active" data-view="geral" onclick="mudarView('geral')">📊 Visão geral</a>
-    <a class="admin-nav-link" data-view="produtos" onclick="mudarView('produtos')">📦 Produtos</a>
-    <a class="admin-nav-link" data-view="encomendas" onclick="mudarView('encomendas')">🧾 Encomendas</a>
-    <a class="admin-nav-link" data-view="reservas" onclick="mudarView('reservas')">🪑 Reservas</a>
-    <a class="admin-nav-link" data-view="clientes" onclick="mudarView('clientes')">👥 Clientes</a>
-    <a class="admin-nav-link" data-view="campos" onclick="mudarView('campos')">📝 Campos da Encomenda</a>
-    <a class="admin-nav-link" data-view="aparencia" onclick="mudarView('aparencia')">🎨 Aparência</a>
+    <a class="admin-nav-link active" data-view="geral" data-roles="admin,gestor,funcionario" onclick="mudarView('geral')">📊 Visão geral</a>
+    <a class="admin-nav-link" data-view="produtos" data-roles="admin,gestor" onclick="mudarView('produtos')">📦 Produtos</a>
+    <a class="admin-nav-link" data-view="encomendas" data-roles="admin,gestor,funcionario" onclick="mudarView('encomendas')">🧾 Encomendas</a>
+    <a class="admin-nav-link" data-view="reservas" data-roles="admin,gestor,funcionario" onclick="mudarView('reservas')">🪑 Reservas</a>
+    <a class="admin-nav-link" data-view="clientes" data-roles="admin,gestor" onclick="mudarView('clientes')">👥 Clientes</a>
+    <a class="admin-nav-link" data-view="campos" data-roles="admin,gestor" onclick="mudarView('campos')">📝 Campos da Encomenda</a>
+    <a class="admin-nav-link" data-view="aparencia" data-roles="admin,gestor" onclick="mudarView('aparencia')">🎨 Aparência</a>
+    <a class="admin-nav-link" data-view="utilizadores" data-roles="admin" onclick="mudarView('utilizadores')">🔐 Utilizadores</a>
     <div style="flex:1;"></div>
     <a class="admin-nav-link" onclick="logout()">🚪 Sair</a>
     <a class="admin-nav-link" href="../index.html">← Ver site</a>
@@ -44,7 +45,7 @@
     <div id="view-produtos" class="admin-view">
       <div class="admin-toolbar">
         <h2>Produtos</h2>
-        <button class="btn-orange" onclick="abrirModalProduto(null)">+ Novo produto</button>
+        <button id="btn-novo-produto" class="btn-orange" onclick="abrirModalProduto(null)">+ Novo produto</button>
       </div>
       <div class="admin-card" style="padding:0;overflow-x:auto;">
         <table class="admin-table">
@@ -102,6 +103,20 @@
         <div class="field"><label>URL da imagem de fundo (página inicial)</label><input id="ap-hero" type="text" placeholder="https://…"></div>
         <button class="btn-orange" onclick="guardarAparencia()">Guardar aparência</button>
         <p id="aparencia-status" style="font-size:.85rem;color:#8bd18f;margin-top:.6rem;"></p>
+      </div>
+    </div>
+
+    <div id="view-utilizadores" class="admin-view">
+      <div class="admin-toolbar"><h2>Utilizadores</h2></div>
+      <p style="color:rgba(241,231,218,0.6);margin-bottom:1rem;font-size:.9rem;">
+        Só o Admin vê esta secção. Promove uma conta de cliente a Funcionário ou Gestor, ou revoga acesso voltando a "cliente".
+      </p>
+      <div class="field" style="max-width:360px;"><input id="ut-busca" type="text" placeholder="Pesquisar por nome ou e-mail…" oninput="filtrarUtilizadores(this.value)"></div>
+      <div class="admin-card" style="padding:0;overflow-x:auto;">
+        <table class="admin-table">
+          <thead><tr><th>Nome</th><th>E-mail</th><th>Papel</th></tr></thead>
+          <tbody id="utilizadores-tbody"></tbody>
+        </table>
       </div>
     </div>
 
@@ -218,6 +233,7 @@ function mudarView(view){
   if(view === 'clientes') carregarClientes();
   if(view === 'campos') carregarCampos();
   if(view === 'aparencia') carregarAparencia();
+  if(view === 'utilizadores') carregarUtilizadores();
 }
 
 /* ================= VISÃO GERAL ================= */
@@ -458,10 +474,59 @@ async function guardarAparencia(){
   document.getElementById('aparencia-status').textContent = 'Guardado! As alterações já se aplicam ao site.';
 }
 
+/* ================= UTILIZADORES (só Admin) ================= */
+let cacheUtilizadores = [];
+async function carregarUtilizadores(){
+  const { data, error } = await supabaseClient.from('profiles').select('*').order('created_at', {ascending:false});
+  cacheUtilizadores = data || [];
+  renderUtilizadores(cacheUtilizadores);
+}
+function renderUtilizadores(lista){
+  const tbody = document.getElementById('utilizadores-tbody');
+  if(!lista.length){ tbody.innerHTML = `<tr><td colspan="3">Sem utilizadores.</td></tr>`; return; }
+  const nomesPapel = { cliente:'Cliente', funcionario:'Funcionário', gestor:'Gestor', admin:'Admin' };
+  tbody.innerHTML = lista.map(u => `
+    <tr>
+      <td>${u.nome || '(sem nome)'}</td>
+      <td>${u.email || '—'}</td>
+      <td>
+        <select onchange="mudarPapelUtilizador('${u.id}', this.value, this)" style="width:auto;padding:.4rem .7rem;font-size:.85rem;">
+          ${Object.entries(nomesPapel).map(([v,l]) => `<option value="${v}" ${u.role===v?'selected':''}>${l}</option>`).join('')}
+        </select>
+      </td>
+    </tr>
+  `).join('');
+}
+function filtrarUtilizadores(q){
+  q = q.trim().toLowerCase();
+  const lista = cacheUtilizadores.filter(u => !q || (u.nome||'').toLowerCase().includes(q) || (u.email||'').toLowerCase().includes(q));
+  renderUtilizadores(lista);
+}
+async function mudarPapelUtilizador(id, novoPapel, selectEl){
+  if(!confirm(`Mudar o papel deste utilizador para "${novoPapel}"?`)) { carregarUtilizadores(); return; }
+  const { error } = await supabaseClient.from('profiles').update({ role: novoPapel }).eq('id', id);
+  if(error){ showToast('Não foi possível alterar (só o Admin pode fazer isto).'); carregarUtilizadores(); return; }
+  showToast('Papel atualizado.');
+  carregarUtilizadores();
+}
+
 /* ================= INIT ================= */
+let meuPapel = 'funcionario';
+
+function aplicarPermissoesMenu(){
+  document.querySelectorAll('.admin-nav-link[data-roles]').forEach(a => {
+    const papeis = a.dataset.roles.split(',');
+    a.style.display = papeis.includes(meuPapel) ? '' : 'none';
+  });
+  const btnNovoProduto = document.getElementById('btn-novo-produto');
+  if(btnNovoProduto) btnNovoProduto.style.display = (meuPapel === 'funcionario') ? 'none' : '';
+}
+
 async function init(){
   const auth = await requireAdmin();
   if(!auth) return;
+  meuPapel = auth.profile.role;
+  aplicarPermissoesMenu();
   carregarVisaoGeral();
 }
 init();
