@@ -89,12 +89,13 @@ async function requireAdmin(){
     return null;
   }
   const profile = await getProfile(session.user.id);
-  if(!profile || profile.role !== 'admin'){
+  const papeisEquipa = ['admin','gestor','funcionario'];
+  if(!profile || !papeisEquipa.includes(profile.role)){
     document.body.innerHTML = `
       <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:1rem;text-align:center;padding:2rem;font-family:Inter,sans-serif;background:#121212;color:#F1E7DA;">
         <div style="font-size:3rem;">🔒</div>
         <h1 style="font-family:'Playfair Display',serif;">Acesso restrito</h1>
-        <p style="color:rgba(241,231,218,0.6);max-width:360px;">Esta área é exclusiva para administradores. A tua conta não tem essa permissão.</p>
+        <p style="color:rgba(241,231,218,0.6);max-width:360px;">Esta área é exclusiva para a equipa do restaurante. A tua conta não tem essa permissão.</p>
         <a href="../index.html" style="color:#FF8A3D;font-weight:600;">Voltar ao site</a>
       </div>`;
     return null;
