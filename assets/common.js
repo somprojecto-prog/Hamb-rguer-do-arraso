@@ -20,6 +20,19 @@ function showToast(msg){
   window.__toastTimer = setTimeout(() => el.classList.remove('show'), 2600);
 }
 
+// Envia um ficheiro de imagem para o Supabase Storage (bucket "imagens")
+// e devolve o URL público, pronto a guardar em qualquer campo *_url.
+async function uploadImagem(file){
+  const extensao = (file.name.split('.').pop() || 'jpg').toLowerCase();
+  const nomeFicheiro = `${Date.now()}-${Math.random().toString(36).slice(2,8)}.${extensao}`;
+  const { error } = await supabaseClient.storage
+    .from('imagens')
+    .upload(nomeFicheiro, file, { cacheControl: '3600', upsert: false });
+  if(error) throw error;
+  const { data } = supabaseClient.storage.from('imagens').getPublicUrl(nomeFicheiro);
+  return data.publicUrl;
+}
+
 // Devolve a sessão atual (ou null se não houver ninguém autenticado)
 async function applySiteSettings(){
   try{
