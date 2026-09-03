@@ -25,6 +25,8 @@ async function applySiteSettings(){
   try{
     const { data } = await supabaseClient.from('site_settings').select('*').eq('id',1).single();
     if(!data) return;
+
+    // --- Aparência (cores, logo, imagem de fundo) ---
     if(data.cor_laranja) document.documentElement.style.setProperty('--orange', data.cor_laranja);
     if(data.cor_laranja_clara) document.documentElement.style.setProperty('--orange-light', data.cor_laranja_clara);
     if(data.logo_url){
@@ -42,7 +44,46 @@ async function applySiteSettings(){
         hero.style.backgroundPosition = 'center';
       }
     }
-  }catch(e){ console.warn('Não foi possível aplicar as configurações de aparência.', e); }
+
+    // --- Textos do site (nome, slogan, descrições, rodapé, contactos) ---
+    if(data.nome_site){
+      document.querySelectorAll('.js-site-name').forEach(el => el.textContent = data.nome_site);
+    }
+    if(data.slogan){
+      document.querySelectorAll('.js-site-slogan').forEach(el => el.textContent = data.slogan);
+    }
+    if(data.hero_descricao){
+      document.querySelectorAll('.js-hero-descricao').forEach(el => el.textContent = data.hero_descricao);
+    }
+
+    const footerCopy = document.getElementById('footer-copy');
+    if(footerCopy){
+      const nome = data.nome_site || 'Hambúrguer do Arraso';
+      const texto = data.rodape_texto || 'Todos os direitos reservados.';
+      footerCopy.innerHTML = `© <span>${new Date().getFullYear()}</span> ${nome} — ${texto}`;
+    }
+
+    if(data.redes_instagram){
+      document.querySelectorAll('.js-social-instagram').forEach(el => el.href = data.redes_instagram);
+    }
+    if(data.redes_facebook){
+      document.querySelectorAll('.js-social-facebook').forEach(el => el.href = data.redes_facebook);
+    }
+    if(data.contacto_whatsapp){
+      const numero = data.contacto_whatsapp.replace(/\D/g,'');
+      document.querySelectorAll('.js-social-whatsapp').forEach(el => el.href = `https://wa.me/c/${numero}`);
+      document.querySelectorAll('.js-whatsapp-float').forEach(el => el.href = `https://wa.me/c/${numero}`);
+    }
+    if(data.contacto_telefone){
+      document.querySelectorAll('.js-contacto-telefone').forEach(el => el.textContent = data.contacto_telefone);
+    }
+    if(data.contacto_email){
+      document.querySelectorAll('.js-contacto-email').forEach(el => el.textContent = data.contacto_email);
+    }
+    if(data.contacto_morada){
+      document.querySelectorAll('.js-contacto-morada').forEach(el => el.textContent = data.contacto_morada);
+    }
+  }catch(e){ console.warn('Não foi possível aplicar as configurações do site.', e); }
 }
 
 async function getSession(){
