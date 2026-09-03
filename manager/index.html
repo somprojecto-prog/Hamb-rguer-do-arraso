@@ -200,6 +200,16 @@
           <input type="hidden" id="ap-hero">
           <p id="ap-hero-status" style="font-size:.78rem;margin-top:.4rem;"></p>
         </div>
+        <div class="field">
+          <label>Foto de destaque (o quadro com o hambúrguer, na página inicial)</label>
+          <div class="image-upload-box" onclick="document.getElementById('ap-herofoto-file').click()">
+            <img id="ap-herofoto-preview-img" style="display:none;">
+            <span id="ap-herofoto-placeholder">Toque para escolher uma foto</span>
+          </div>
+          <input type="file" id="ap-herofoto-file" accept="image/*" style="display:none;" onchange="handleImagemUpload(this,'ap-herofoto')">
+          <input type="hidden" id="ap-herofoto">
+          <p id="ap-herofoto-status" style="font-size:.78rem;margin-top:.4rem;"></p>
+        </div>
         <button class="btn-orange" onclick="guardarAparencia()">Guardar aparência</button>
         <p id="aparencia-status" style="font-size:.85rem;color:#8bd18f;margin-top:.6rem;"></p>
       </div>
@@ -795,13 +805,15 @@ async function carregarAparencia(){
   document.getElementById('ap-cor2').value = data.cor_laranja_clara || '#FF8A3D';
   mostrarPreviewImagem('ap-logo', data.logo_url || '');
   mostrarPreviewImagem('ap-hero', data.hero_url || '');
+  mostrarPreviewImagem('ap-herofoto', data.hero_foto_url || '');
 }
 async function guardarAparencia(){
   const payload = {
     cor_laranja: document.getElementById('ap-cor1').value,
     cor_laranja_clara: document.getElementById('ap-cor2').value,
     logo_url: document.getElementById('ap-logo').value.trim() || null,
-    hero_url: document.getElementById('ap-hero').value.trim() || null
+    hero_url: document.getElementById('ap-hero').value.trim() || null,
+    hero_foto_url: document.getElementById('ap-herofoto').value.trim() || null
   };
   await supabaseClient.from('site_settings').update(payload).eq('id',1);
   document.getElementById('aparencia-status').textContent = 'Guardado! As alterações já se aplicam ao site.';
