@@ -112,6 +112,33 @@
     <!-- ENCOMENDAS -->
     <div id="view-encomendas" class="admin-view">
       <div class="admin-toolbar"><h2>Encomendas</h2></div>
+
+      <div class="admin-card" style="padding:.9rem 1rem;margin-bottom:1rem;">
+        <div style="display:flex;flex-wrap:wrap;gap:.7rem;align-items:end;">
+          <div class="field" style="margin:0;flex:2;min-width:180px;">
+            <label style="font-size:.75rem;">Pesquisar</label>
+            <input id="enc-pesquisa" type="text" placeholder="Nome, telefone ou nº da encomenda…" oninput="renderEncomendasFiltradas()">
+          </div>
+          <div class="field" style="margin:0;flex:1;min-width:140px;">
+            <label style="font-size:.75rem;">Estado</label>
+            <select id="enc-filtro-estado" onchange="renderEncomendasFiltradas()">
+              <option value="">Todos</option>
+            </select>
+          </div>
+          <div class="field" style="margin:0;flex:1;min-width:130px;">
+            <label style="font-size:.75rem;">De</label>
+            <input id="enc-data-inicio" type="date" onchange="renderEncomendasFiltradas()">
+          </div>
+          <div class="field" style="margin:0;flex:1;min-width:130px;">
+            <label style="font-size:.75rem;">Até</label>
+            <input id="enc-data-fim" type="date" onchange="renderEncomendasFiltradas()">
+          </div>
+          <button class="btn-ghost" onclick="limparFiltrosEncomendas()">Limpar</button>
+          <button class="btn-ghost" onclick="imprimirListaEncomendas()">Imprimir lista</button>
+        </div>
+        <p id="enc-contagem" style="font-size:.78rem;color:rgba(241,231,218,0.45);margin-top:.6rem;"></p>
+      </div>
+
       <div id="encomendas-box"></div>
     </div>
 
@@ -501,32 +528,87 @@ document.getElementById('produto-form').addEventListener('submit', async (e) => 
 
 /* ================= ENCOMENDAS ================= */
 const ESTADOS = ['Pendente','Pago','Em preparação','Enviado','Entregue','Cancelado'];
+document.getElementById('enc-filtro-estado').insertAdjacentHTML('beforeend',
+  ESTADOS.map(s => `<option value="${s}">${s}</option>`).join(''));
+let todasEncomendas = [];
+
 async function carregarEncomendas(){
   const box = document.getElementById('encomendas-box');
+  box.innerHTML = `<p class="empty-state">A carregar…</p>`;
   const { data, error } = await supabaseClient
     .from('orders').select('*, order_items(*), profiles(nome, telefone)')
     .order('created_at', { ascending:false });
-  if(error || !data.length){ box.innerHTML = `<p class="empty-state">Ainda não há encomendas.</p>`; return; }
-  box.innerHTML = data.map(o => `
+  if(error){ box.innerHTML = `<p class="empty-state">Não foi possível carregar as encomendas.</p>`; return; }
+  todasEncomendas = data || [];
+  renderEncomendasFiltradas();
+}
+
+function limparFiltrosEncomendas(){
+  document.getElementById('enc-pesquisa').value = '';
+  document.getElementById('enc-filtro-estado').value = '';
+  document.getElementById('enc-data-inicio').value = '';
+  document.getElementById('enc-data-fim').value = '';
+  renderEncomendasFiltradas();
+}
+
+function encomendasFiltradas(){
+  const termo = document.getElementById('enc-pesquisa').value.trim().toLowerCase();
+  const estado = document.getElementById('enc-filtro-estado').value;
+  const dataInicio = document.getElementById('enc-data-inicio').value;
+  const dataFim = document.getElementById('enc-data-fim').value;
+
+  return todasEncomendas.filter(o => {
+    if(estado && o.status !== estado) return false;
+    if(dataInicio && o.created_at.slice(0,10) < dataInicio) return false;
+    if(dataFim && o.created_at.slice(0,10) > dataFim) return false;
+    if(termo){
+      const alvo = [
+        o.profiles ? o.profiles.nome : '',
+        o.telefone || '',
+        o.id
+      ].join(' ').toLowerCase();
+      if(!alvo.includes(termo)) return false;
+    }
+    return true;
+  });
+}
+
+function renderEncomendasFiltradas(){
+  const box = document.getElementById('encomendas-box');
+  const lista = encomendasFiltradas();
+  document.getElementById('enc-contagem').textContent =
+    `${lista.length} de ${todasEncomendas.length} encomenda(s)`;
+
+  if(!lista.length){ box.innerHTML = `<p class="empty-state">Nenhuma encomenda encontrada com estes filtros.</p>`; return; }
+
+  box.innerHTML = lista.map(o => `
     <div class="order-card">
       <div class="order-card-head">
         <div>
-          <p style="font-weight:700;">${o.profiles ? o.profiles.nome : 'Cliente'}</p>
+          <p style="font-weight:700;">${o.profiles ? o.profiles.nome : 'Cliente'} <span style="font-weight:400;color:rgba(241,231,218,0.4);font-size:.75rem;">#${o.id.slice(0,8)}</span></p>
           <p style="font-size:.8rem;color:rgba(241,231,218,0.5);">${new Date(o.created_at).toLocaleString('pt-PT')} · ${formatKz(o.total)}</p>
         </div>
         <select onchange="mudarEstado('${o.id}', this.value)" style="width:auto;padding:.4rem .7rem;font-size:.8rem;">
           ${ESTADOS.map(s => `<option value="${s}" ${s===o.status?'selected':''}>${s}</option>`).join('')}
         </select>
       </div>
-      <button class="btn-ghost" onclick='verDetalheEncomenda(${JSON.stringify(o).replace(/'/g,"&apos;")})'>Ver detalhes →</button>
+      <div style="display:flex;gap:.6rem;">
+        <button class="btn-ghost" onclick='verDetalheEncomenda(${JSON.stringify(o).replace(/'/g,"&apos;")})'>Ver detalhes →</button>
+        <button class="btn-ghost" onclick="imprimirEncomenda('${o.id}')">Imprimir</button>
+      </div>
     </div>
   `).join('');
 }
+
 async function mudarEstado(orderId, status){
-  await supabaseClient.from('orders').update({ status }).eq('id', orderId);
+  const { error } = await supabaseClient.from('orders').update({ status }).eq('id', orderId);
+  if(error){ showToast('Não foi possível atualizar o estado.'); return; }
+  const alvo = todasEncomendas.find(o => o.id === orderId);
+  if(alvo) alvo.status = status;
   showToast('Estado atualizado.');
 }
-function verDetalheEncomenda(o){
+
+async function verDetalheEncomenda(o){
   const itens = o.order_items.map(i => {
     const opcoes = (i.extras||[]).map(op => `${op.grupo}: ${op.escolha}${op.preco?` (+${formatKz(op.preco)})`:''}`).join(' · ');
     return `<p style="font-size:.88rem;margin-bottom:.3rem;">${i.quantidade}x ${i.nome} — ${formatKz(i.preco*i.quantidade)}
@@ -540,8 +622,94 @@ function verDetalheEncomenda(o){
     ${itens}
     ${extras}
     <p style="font-weight:800;margin-top:.8rem;color:var(--orange-light);">Total: ${formatKz(o.total)}</p>
+    <button class="btn-ghost" style="margin-top:.6rem;" onclick="imprimirEncomenda('${o.id}')">Imprimir esta encomenda</button>
+    <div style="border-top:1px solid rgba(241,231,218,0.1);margin-top:1rem;padding-top:.8rem;">
+      <p style="font-weight:700;font-size:.85rem;margin-bottom:.5rem;">Histórico de alterações</p>
+      <div id="enc-historico">A carregar…</div>
+    </div>
   `;
   document.getElementById('encomenda-modal').classList.add('open');
+
+  const { data: historico } = await supabaseClient
+    .from('order_status_history')
+    .select('*, profiles(nome)')
+    .eq('order_id', o.id)
+    .order('criado_em', { ascending:true });
+  const histEl = document.getElementById('enc-historico');
+  if(!histEl) return; // o utilizador já fechou o modal
+  if(!historico || !historico.length){
+    histEl.innerHTML = `<p style="font-size:.8rem;color:rgba(241,231,218,0.4);">Sem histórico registado.</p>`;
+    return;
+  }
+  histEl.innerHTML = historico.map(h => `
+    <p style="font-size:.8rem;color:rgba(241,231,218,0.6);margin-bottom:.3rem;">
+      ${new Date(h.criado_em).toLocaleString('pt-PT')} —
+      ${h.status_anterior ? `${h.status_anterior} → ` : 'Criada como '}<strong style="color:var(--orange-light);">${h.status_novo}</strong>
+      ${h.profiles ? ` · ${h.profiles.nome}` : ''}
+    </p>
+  `).join('');
+}
+
+/* ---- Impressão ---- */
+function abrirJanelaImpressao(titulo, conteudoHtml){
+  const win = window.open('', '_blank');
+  win.document.write(`
+    <!DOCTYPE html><html lang="pt"><head><meta charset="UTF-8"><title>${titulo}</title>
+    <style>
+      body{ font-family: Arial, sans-serif; color:#111; padding:2rem; }
+      h1{ font-size:1.3rem; margin-bottom:.2rem; }
+      p{ margin:.2rem 0; }
+      table{ width:100%; border-collapse:collapse; margin-top:1rem; }
+      th, td{ text-align:left; padding:.4rem .5rem; border-bottom:1px solid #ccc; font-size:.85rem; }
+      th{ background:#f2f2f2; }
+      .muted{ color:#666; font-size:.8rem; }
+    </style></head><body>${conteudoHtml}</body></html>
+  `);
+  win.document.close();
+  win.focus();
+  setTimeout(() => win.print(), 300);
+}
+
+function imprimirEncomenda(orderId){
+  const o = todasEncomendas.find(x => x.id === orderId);
+  if(!o) return;
+  const itensHtml = o.order_items.map(i => {
+    const opcoes = (i.extras||[]).map(op => `${op.grupo}: ${op.escolha}${op.preco?` (+${formatKz(op.preco)})`:''}`).join(', ');
+    return `<tr><td>${i.quantidade}x ${i.nome}${opcoes?`<br><span class="muted">${opcoes}</span>`:''}${i.observacoes?`<br><span class="muted">Obs: ${i.observacoes}</span>`:''}</td><td>${formatKz(i.preco*i.quantidade)}</td></tr>`;
+  }).join('');
+  const html = `
+    <h1>Hambúrguer do Arraso</h1>
+    <p class="muted">Encomenda #${o.id.slice(0,8)} · ${new Date(o.created_at).toLocaleString('pt-PT')}</p>
+    <p><strong>${o.profiles ? o.profiles.nome : 'Cliente'}</strong> · ${o.telefone||''}</p>
+    <p>${o.morada||''}</p>
+    <p>Pagamento: ${o.pagamento||''} · Estado: <strong>${o.status}</strong></p>
+    <table><thead><tr><th>Item</th><th>Preço</th></tr></thead><tbody>${itensHtml}</tbody></table>
+    <p style="font-size:1.1rem;font-weight:bold;margin-top:1rem;">Total: ${formatKz(o.total)}</p>
+  `;
+  abrirJanelaImpressao(`Encomenda #${o.id.slice(0,8)}`, html);
+}
+
+function imprimirListaEncomendas(){
+  const lista = encomendasFiltradas();
+  const linhas = lista.map(o => `
+    <tr>
+      <td>#${o.id.slice(0,8)}</td>
+      <td>${o.profiles ? o.profiles.nome : 'Cliente'}</td>
+      <td>${o.telefone||''}</td>
+      <td>${new Date(o.created_at).toLocaleString('pt-PT')}</td>
+      <td>${o.status}</td>
+      <td>${formatKz(o.total)}</td>
+    </tr>
+  `).join('');
+  const html = `
+    <h1>Hambúrguer do Arraso — Lista de encomendas</h1>
+    <p class="muted">${lista.length} encomenda(s) · gerado em ${new Date().toLocaleString('pt-PT')}</p>
+    <table>
+      <thead><tr><th>Nº</th><th>Cliente</th><th>Telefone</th><th>Data</th><th>Estado</th><th>Total</th></tr></thead>
+      <tbody>${linhas}</tbody>
+    </table>
+  `;
+  abrirJanelaImpressao('Lista de encomendas', html);
 }
 
 /* ================= RESERVAS ================= */
