@@ -57,6 +57,11 @@ async function applySiteSettings(){
         hero.style.backgroundPosition = 'center';
       }
     }
+    if(data.hero_foto_url){
+      document.querySelectorAll('.js-hero-photo').forEach(el => {
+        el.style.backgroundImage = `url(${data.hero_foto_url})`;
+      });
+    }
 
     // --- Textos do site (nome, slogan, descrições, rodapé, contactos) ---
     if(data.nome_site){
