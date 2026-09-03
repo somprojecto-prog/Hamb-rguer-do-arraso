@@ -2,6 +2,24 @@
 // FUNÇÕES PARTILHADAS — usadas pelo site do cliente e pelo painel do gestor
 // ============================================================
 
+// Esconde o ecrã de carregamento (hambúrguer a saltitar) assim que a
+// página estiver pronta. Fica visível pelo menos meio segundo, para o
+// efeito ser percetível mesmo em ligações rápidas, e desaparece de
+// qualquer forma ao fim de 4s (segurança, caso algo demore demasiado).
+(function(){
+  const inicio = Date.now();
+  const TEMPO_MINIMO = 500;
+  function esconderLoading(){
+    const overlay = document.getElementById('loading-overlay');
+    if(!overlay || overlay.classList.contains('hide')) return;
+    const espera = Math.max(0, TEMPO_MINIMO - (Date.now() - inicio));
+    setTimeout(() => overlay.classList.add('hide'), espera);
+  }
+  if(document.readyState === 'complete'){ esconderLoading(); }
+  else{ window.addEventListener('load', esconderLoading); }
+  setTimeout(esconderLoading, 4000);
+})();
+
 function formatKz(valor){
   return new Intl.NumberFormat('pt-AO', { maximumFractionDigits: 0 }).format(valor || 0) + ' Kz';
 }
