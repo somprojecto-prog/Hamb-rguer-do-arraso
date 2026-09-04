@@ -28,20 +28,20 @@
   <div class="carousel-wrap reveal">
     <p class="section-eyebrow">FAST FOOD</p>
     <h2 class="section-title">Do nosso fogão para si</h2>
-    <button class="carousel-arrow left" onclick="scrollCarousel('fastfood-track',-260)" aria-label="Deslizar para a esquerda">‹</button>
-    <button class="carousel-arrow right" onclick="scrollCarousel('fastfood-track',260)" aria-label="Deslizar para a direita">›</button>
+    <button class="carousel-arrow left" onclick="scrollCarouselStep('fastfood-track',-1)" aria-label="Deslizar para a esquerda">‹</button>
+    <button class="carousel-arrow right" onclick="scrollCarouselStep('fastfood-track',1)" aria-label="Deslizar para a direita">›</button>
     <div id="fastfood-track" class="carousel-track">
-      <div class="carousel-skeleton"></div><div class="carousel-skeleton"></div><div class="carousel-skeleton"></div>
+      <div class="carousel-skeleton"></div><div class="carousel-skeleton"></div><div class="carousel-skeleton"></div><div class="carousel-skeleton"></div>
     </div>
   </div>
 
   <div class="carousel-wrap reveal">
     <p class="section-eyebrow">BEBIDAS</p>
     <h2 class="section-title">Para acompanhar</h2>
-    <button class="carousel-arrow left" onclick="scrollCarousel('bebidas-track',-180)" aria-label="Deslizar para a esquerda">‹</button>
-    <button class="carousel-arrow right" onclick="scrollCarousel('bebidas-track',180)" aria-label="Deslizar para a direita">›</button>
+    <button class="carousel-arrow left" onclick="scrollCarouselStep('bebidas-track',-1)" aria-label="Deslizar para a esquerda">‹</button>
+    <button class="carousel-arrow right" onclick="scrollCarouselStep('bebidas-track',1)" aria-label="Deslizar para a direita">›</button>
     <div id="bebidas-track" class="carousel-track">
-      <div class="carousel-skeleton round"></div><div class="carousel-skeleton round"></div><div class="carousel-skeleton round"></div>
+      <div class="carousel-skeleton round"></div><div class="carousel-skeleton round"></div><div class="carousel-skeleton round"></div><div class="carousel-skeleton round"></div><div class="carousel-skeleton round"></div>
     </div>
   </div>
   <p class="age-notice">🔞 Bebidas alcoólicas destinadas apenas a maiores de 18 anos.</p>
@@ -60,14 +60,8 @@ renderTopbar('loja');
 renderBottomNav('loja');
 bindCarouselSound();
 
-async function carregar(){
-  const { data, error } = await supabaseClient.from('products').select('*').eq('ativo', true).order('nome');
-  if(error || !data){ return; }
-
-  const fastfood = data.filter(p => p.categoria === 'fastfood');
-  const bebidas = data.filter(p => p.categoria === 'bebidas');
-
-  document.getElementById('fastfood-track').innerHTML = fastfood.map(p => `
+function cartaoFastFood(p){
+  return `
     <a href="produto.html?id=${p.id}" class="food-card burn-edge card-hover">
       <div class="product-img" style="${p.imagem_url?`background-image:url(${p.imagem_url})`:''}">${p.imagem_url?'':`[ Foto — ${p.nome} ]`}</div>
       <div class="info">
@@ -78,17 +72,29 @@ async function carregar(){
           <button class="btn-orange" style="padding:.5rem 1rem;font-size:.8rem;" onclick="event.preventDefault(); window.location.href='produto.html?id=${p.id}'">Adicionar</button>
         </div>
       </div>
-    </a>
-  `).join('') || `<p class="empty-state">Sem produtos nesta categoria.</p>`;
-
-  document.getElementById('bebidas-track').innerHTML = bebidas.map(p => `
+    </a>`;
+}
+function cartaoBebida(p){
+  return `
     <a href="produto.html?id=${p.id}" class="drink-card">
       <div class="drink-img" style="${p.imagem_url?`background-image:url(${p.imagem_url})`:''}">${p.imagem_url?'':p.nome}</div>
       <h4>${p.nome}</h4>
       <p class="price">${formatKz(p.preco_promocional || p.preco)}</p>
       <button class="btn-orange" style="padding:.4rem .9rem;font-size:.78rem;" onclick="event.preventDefault(); window.location.href='produto.html?id=${p.id}'">Adicionar</button>
-    </a>
-  `).join('') || `<p class="empty-state">Sem bebidas disponíveis.</p>`;
+    </a>`;
+}
+
+async function carregar(){
+  const { data, error } = await supabaseClient.from('products').select('*').eq('ativo', true).order('ordem', { ascending: true });
+  if(error || !data){ return; }
+
+  const fastfood = data.filter(p => p.categoria === 'fastfood');
+  const bebidas = data.filter(p => p.categoria === 'bebidas');
+
+  renderInfiniteTrack('fastfood-track', fastfood, cartaoFastFood);
+
+  document.getElementById('bebidas-track').innerHTML = bebidas.map(cartaoBebida).join('') || `<p class="empty-state">Sem bebidas disponíveis.</p>`;
+  initBebidasScale('bebidas-track');
 }
 carregar();
 

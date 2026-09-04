@@ -23,13 +23,22 @@
 
 <div id="topbar-mount"></div>
 
-<header class="wood-texture hero-section">
+<!-- ============================================================
+     IMAGEM DE FUNDO PRINCIPAL (hero)
+     Para trocares por uma imagem tua, tens 2 opções:
+       1) Ficheiro: substitui assets/img/hero-bg.jpg (mesmo nome) OU
+          muda o caminho no "--hero-bg-url" aqui em baixo.
+       2) Sem mexer em código: Painel do Gestor → Aparência →
+          "Imagem de fundo" — essa opção tem sempre prioridade sobre
+          esta (ver assets/common.js → applySiteSettings → hero_url).
+     ============================================================ -->
+<header class="wood-texture hero-section" style="--hero-bg-url:url('assets/img/hero-bg.jpg');">
   <div class="wrap hero-grid">
-    <div class="hero-text reveal">
+    <div class="reveal">
       <p class="hero-tag">O melhor da banda 🔥</p>
       <h1 class="hero-title">Hambúrguer<br>do <span>Arraso</span></h1>
-      <p class="js-hero-descricao" style="color:rgba(241,231,218,0.75);font-size:1.05rem;margin-bottom:2rem;">Faz a tua encomenda online e recebe em casa, ou reserva a tua mesa.</p>
-      <div style="display:flex;gap:.8rem;flex-wrap:wrap;">
+      <p class="js-hero-descricao" style="color:rgba(241,231,218,0.8);font-size:1.05rem;margin-bottom:2rem;">Faz a tua encomenda online e recebe em casa, ou reserva a tua mesa.</p>
+      <div style="display:flex;gap:.8rem;flex-wrap:wrap;justify-content:center;">
         <a href="loja.html" class="btn-orange btn-pulse">Ver menu
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
         </a>
@@ -38,54 +47,39 @@
         </a>
       </div>
     </div>
-    <div class="hero-photo reveal js-hero-photo" style="background-image:url('assets/img/hero-burger.jpg');">
-      <div class="hero-badge">
-        <span>100%</span>
-        Carne bovina<br>premium
-      </div>
+    <div class="hero-badge">
+      <span>100%</span>
+      Carne bovina<br>premium
     </div>
+  </div>
+
+  <!-- Transição orgânica para a secção do menu — em vez de um corte reto,
+       uma borda ondulada com sombra suave, mantendo o espírito "veio de
+       madeira" do resto do site. -->
+  <div class="hero-organic-edge" aria-hidden="true">
+    <svg viewBox="0 0 1440 90" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M0,40 C 240,90 480,0 720,32 C 960,64 1200,8 1440,44 L1440,90 L0,90 Z" fill="#121212"></path>
+    </svg>
   </div>
 </header>
 
 <div class="wrap">
-  <div class="feature-bar">
-    <div class="feature-marquee">
-      <div class="feature-track">
-        <div class="feature-item">
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--orange-light)" stroke-width="1.8"><path d="M12 2c1.5 3-1 4-1 6.5A3.5 3.5 0 0 0 15 12c0-1-.3-1.7-.7-2.3.9.3 2.7 1.8 2.7 4.8a5 5 0 0 1-10 0c0-3.5 2-4.7 3-7 .6-1.3.4-2.7 0-3.5.6.2 1.5.7 2 3z"/></svg>
-          <div><h5>Grelhado na hora</h5><p>Sabor único que só o fogo dá</p></div>
-        </div>
-        <div class="feature-item">
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--orange-light)" stroke-width="1.8"><path d="M3 12h18M5 12a7 7 0 0 1 14 0M2 12h20l-1.5 5H3.5z"/></svg>
-          <div><h5>Entrega rápida</h5><p>Em sua casa num instante</p></div>
-        </div>
-        <div class="feature-item">
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--orange-light)" stroke-width="1.8"><circle cx="12" cy="8" r="5"/><path d="M8.5 12.5 7 21l5-2.5L17 21l-1.5-8.5"/></svg>
-          <div><h5>Ingredientes frescos</h5><p>Qualidade premium todos os dias</p></div>
-        </div>
-        <div class="feature-item">
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--orange-light)" stroke-width="1.8"><path d="M12 21s-7.5-4.6-10-9.3C.4 8 2.3 4 6.3 4c2 0 3.6 1.2 5.7 3.6C14.1 5.2 15.7 4 17.7 4c4 0 5.9 4 4.3 7.7-2.5 4.7-10 9.3-10 9.3z"/></svg>
-          <div><h5>Feito com amor</h5><p>Paixão em cada detalhe</p></div>
-        </div>
-      </div>
-      <div class="feature-track" aria-hidden="true">
-        <div class="feature-item">
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--orange-light)" stroke-width="1.8"><path d="M12 2c1.5 3-1 4-1 6.5A3.5 3.5 0 0 0 15 12c0-1-.3-1.7-.7-2.3.9.3 2.7 1.8 2.7 4.8a5 5 0 0 1-10 0c0-3.5 2-4.7 3-7 .6-1.3.4-2.7 0-3.5.6.2 1.5.7 2 3z"/></svg>
-          <div><h5>Grelhado na hora</h5><p>Sabor único que só o fogo dá</p></div>
-        </div>
-        <div class="feature-item">
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--orange-light)" stroke-width="1.8"><path d="M3 12h18M5 12a7 7 0 0 1 14 0M2 12h20l-1.5 5H3.5z"/></svg>
-          <div><h5>Entrega rápida</h5><p>Em sua casa num instante</p></div>
-        </div>
-        <div class="feature-item">
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--orange-light)" stroke-width="1.8"><circle cx="12" cy="8" r="5"/><path d="M8.5 12.5 7 21l5-2.5L17 21l-1.5-8.5"/></svg>
-          <div><h5>Ingredientes frescos</h5><p>Qualidade premium todos os dias</p></div>
-        </div>
-        <div class="feature-item">
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--orange-light)" stroke-width="1.8"><path d="M12 21s-7.5-4.6-10-9.3C.4 8 2.3 4 6.3 4c2 0 3.6 1.2 5.7 3.6C14.1 5.2 15.7 4 17.7 4c4 0 5.9 4 4.3 7.7-2.5 4.7-10 9.3-10 9.3z"/></svg>
-          <div><h5>Feito com amor</h5><p>Paixão em cada detalhe</p></div>
-        </div>
-      </div>
+  <div class="feature-bar reveal">
+    <div class="feature-item">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--orange-light)" stroke-width="1.8"><path d="M12 2c1.5 3-1 4-1 6.5A3.5 3.5 0 0 0 15 12c0-1-.3-1.7-.7-2.3.9.3 2.7 1.8 2.7 4.8a5 5 0 0 1-10 0c0-3.5 2-4.7 3-7 .6-1.3.4-2.7 0-3.5.6.2 1.5.7 2 3z"/></svg>
+      <div><h5>Grelhado na hora</h5><p>Sabor único que só o fogo dá</p></div>
+    </div>
+    <div class="feature-item">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--orange-light)" stroke-width="1.8"><path d="M3 12h18M5 12a7 7 0 0 1 14 0M2 12h20l-1.5 5H3.5z"/></svg>
+      <div><h5>Entrega rápida</h5><p>Em sua casa num instante</p></div>
+    </div>
+    <div class="feature-item">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--orange-light)" stroke-width="1.8"><circle cx="12" cy="8" r="5"/><path d="M8.5 12.5 7 21l5-2.5L17 21l-1.5-8.5"/></svg>
+      <div><h5>Ingredientes frescos</h5><p>Qualidade premium todos os dias</p></div>
+    </div>
+    <div class="feature-item">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--orange-light)" stroke-width="1.8"><path d="M12 21s-7.5-4.6-10-9.3C.4 8 2.3 4 6.3 4c2 0 3.6 1.2 5.7 3.6C14.1 5.2 15.7 4 17.7 4c4 0 5.9 4 4.3 7.7-2.5 4.7-10 9.3-10 9.3z"/></svg>
+      <div><h5>Feito com amor</h5><p>Paixão em cada detalhe</p></div>
     </div>
   </div>
 </div>
@@ -102,12 +96,11 @@
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg>
       </a>
     </div>
-    <button class="carousel-arrow left" onclick="scrollCarousel('fastfood-track',-260)" aria-label="Deslizar para a esquerda">‹</button>
-    <button class="carousel-arrow right" onclick="scrollCarousel('fastfood-track',260)" aria-label="Deslizar para a direita">›</button>
+    <button class="carousel-arrow left" onclick="scrollCarouselStep('fastfood-track',-1)" aria-label="Deslizar para a esquerda">‹</button>
+    <button class="carousel-arrow right" onclick="scrollCarouselStep('fastfood-track',1)" aria-label="Deslizar para a direita">›</button>
     <div id="fastfood-track" class="carousel-track">
-      <div class="carousel-skeleton"></div><div class="carousel-skeleton"></div><div class="carousel-skeleton"></div>
+      <div class="carousel-skeleton"></div><div class="carousel-skeleton"></div><div class="carousel-skeleton"></div><div class="carousel-skeleton"></div>
     </div>
-    <div id="fastfood-dots" class="carousel-dots"></div>
   </div>
 
   <div class="carousel-wrap reveal">
@@ -120,10 +113,10 @@
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg>
       </a>
     </div>
-    <button class="carousel-arrow left" onclick="scrollCarousel('bebidas-track',-180)" aria-label="Deslizar para a esquerda">‹</button>
-    <button class="carousel-arrow right" onclick="scrollCarousel('bebidas-track',180)" aria-label="Deslizar para a direita">›</button>
+    <button class="carousel-arrow left" onclick="scrollCarouselStep('bebidas-track',-1)" aria-label="Deslizar para a esquerda">‹</button>
+    <button class="carousel-arrow right" onclick="scrollCarouselStep('bebidas-track',1)" aria-label="Deslizar para a direita">›</button>
     <div id="bebidas-track" class="carousel-track">
-      <div class="carousel-skeleton round"></div><div class="carousel-skeleton round"></div><div class="carousel-skeleton round"></div>
+      <div class="carousel-skeleton round"></div><div class="carousel-skeleton round"></div><div class="carousel-skeleton round"></div><div class="carousel-skeleton round"></div><div class="carousel-skeleton round"></div>
     </div>
   </div>
   <p class="age-notice">🔞 Bebidas alcoólicas destinadas apenas a maiores de 18 anos.</p>
@@ -182,27 +175,10 @@ renderTopbar('home');
 renderBottomNav('home');
 bindCarouselSound();
 
-async function carregarDestaques(){
-  const fastfoodBox = document.getElementById('fastfood-track');
-  const bebidasBox = document.getElementById('bebidas-track');
-
-  const { data, error } = await supabaseClient
-    .from('products')
-    .select('*')
-    .eq('ativo', true)
-    .order('created_at', { ascending:false });
-
-  if(error || !data){
-    fastfoodBox.innerHTML = `<p class="empty-state">Não foi possível carregar os produtos.</p>`;
-    return;
-  }
-
-  const fastfood = data.filter(p => p.categoria === 'fastfood');
-  const bebidas = data.filter(p => p.categoria === 'bebidas');
-
-  fastfoodBox.innerHTML = fastfood.map((p,i) => `
+function cartaoFastFood(p, destaque){
+  return `
     <a href="produto.html?id=${p.id}" class="food-card burn-edge card-hover">
-      ${i===0 ? '<span class="badge-tag">🔥 Mais pedido</span>' : ''}
+      ${destaque ? '<span class="badge-tag">🔥 Mais pedido</span>' : ''}
       <div class="product-img" style="${p.imagem_url?`background-image:url(${p.imagem_url})`:''}">${p.imagem_url?'':`[ Foto — ${p.nome} ]`}</div>
       <div class="info">
         <h4>${p.nome}</h4>
@@ -212,30 +188,46 @@ async function carregarDestaques(){
           <button class="add-round" onclick="event.preventDefault(); window.location.href='produto.html?id=${p.id}'" aria-label="Adicionar">+</button>
         </div>
       </div>
-    </a>
-  `).join('') || `<p class="empty-state">Sem produtos nesta categoria.</p>`;
-
-  const dotsBox = document.getElementById('fastfood-dots');
-  if(dotsBox) dotsBox.innerHTML = fastfood.map((_,i) => `<span class="dot ${i===0?'active':''}"></span>`).join('');
-
-  bebidasBox.innerHTML = bebidas.map(p => `
+    </a>`;
+}
+function cartaoBebida(p){
+  return `
     <a href="produto.html?id=${p.id}" class="drink-card">
       <div class="drink-img" style="${p.imagem_url?`background-image:url(${p.imagem_url})`:''}">${p.imagem_url?'':p.nome}</div>
       <h4>${p.nome}</h4>
       <p class="price">${formatKz(p.preco_promocional || p.preco)}</p>
       <button class="add-round sm" onclick="event.preventDefault(); window.location.href='produto.html?id=${p.id}'" aria-label="Adicionar">+</button>
-    </a>
-  `).join('') || `<p class="empty-state">Sem bebidas disponíveis.</p>`;
+    </a>`;
+}
+
+async function carregarDestaques(){
+  const { data, error } = await supabaseClient
+    .from('products')
+    .select('*')
+    .eq('ativo', true)
+    .order('ordem', { ascending: true });
+
+  if(error || !data){
+    document.getElementById('fastfood-track').innerHTML = `<p class="empty-state">Não foi possível carregar os produtos.</p>`;
+    return;
+  }
+
+  const fastfood = data.filter(p => p.categoria === 'fastfood');
+  const bebidas = data.filter(p => p.categoria === 'bebidas');
+
+  // Fast food: carrossel infinito (a lista é triplicada por dentro da função)
+  renderInfiniteTrack('fastfood-track', fastfood, (p, i) => cartaoFastFood(p, i === 0));
+
+  // Bebidas: efeito coverflow (maior ao centro)
+  const bebidasBox = document.getElementById('bebidas-track');
+  bebidasBox.innerHTML = bebidas.map(cartaoBebida).join('') || `<p class="empty-state">Sem bebidas disponíveis.</p>`;
+  initBebidasScale('bebidas-track');
 }
 carregarDestaques();
 
-// Anima os blocos suavemente quando entram no ecrã (sem exageros)
 const revealObserver = new IntersectionObserver((entries) => {
   entries.forEach(entry => {
-    if(entry.isIntersecting){
-      entry.target.classList.add('in-view');
-      revealObserver.unobserve(entry.target);
-    }
+    if(entry.isIntersecting){ entry.target.classList.add('in-view'); revealObserver.unobserve(entry.target); }
   });
 }, { threshold: 0.15 });
 document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));

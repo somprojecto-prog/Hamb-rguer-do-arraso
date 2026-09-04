@@ -120,17 +120,9 @@ h1,h2,h3,h4,.font-display{ font-family:'Playfair Display', serif; }
 }
 
 /* Suaviza a chegada de cada página, para as trocas entre index/loja/produto
-   não parecerem um "salto" brusco — aplicado a cada elemento direto do body
-   EXCETO o ecrã de carregamento (opacity de um "pai" afeta sempre os filhos
-   por baixo dele, por isso a animação não pode ir no body em si, ou o
-   próprio ecrã de carregamento ficava semi-transparente). */
-/* IMPORTANTE: esta animação usa só "opacity", nunca "transform" — um
-   transform aqui (mesmo pequeno, tipo translateY) faz qualquer elemento
-   fixo lá dentro (menu de baixo, fita de destaques) parar de se colar
-   ao ecrã e passar a colar-se a esta caixa em vez disso. Já aconteceu
-   uma vez, por isso: não voltar a adicionar transform aqui. */
-body > *:not(#loading-overlay){ animation:page-fade-in .35s ease both; }
-@keyframes page-fade-in{ from{ opacity:0; } to{ opacity:1; } }
+   não parecerem um "salto" brusco */
+body{ animation:page-fade-in .35s ease both; }
+@keyframes page-fade-in{ from{ opacity:0; transform:translateY(6px); } to{ opacity:1; transform:translateY(0); } }
 
 .toast{
   position:fixed; bottom:24px; left:50%; transform:translate(-50%,20px);
@@ -190,36 +182,64 @@ label{ font-size:.85rem; display:block; margin-bottom:.35rem; color:rgba(241,231
 @media (prefers-reduced-motion: reduce){ *{ animation:none !important; transition:none !important; } }
 
 /* ============================================================
-   HERO — foto ao lado do texto, responsivo
+   HERO — imagem de fundo cheia + transição orgânica para o menu
+   ============================================================
+   COMO TROCAR A IMAGEM DE FUNDO PRINCIPAL:
+   1) Forma simples — substitui o ficheiro assets/img/hero-bg.jpg pela
+      tua imagem (mesmo nome, e pronto).
+   2) Forma sem mexer em ficheiros — no site, vai a
+      Painel do Gestor → Aparência → "Imagem de fundo" e cola o link
+      da tua foto. Essa opção tem sempre prioridade sobre o ficheiro
+      local (ver assets/common.js → applySiteSettings → hero_url).
    ============================================================ */
-.hero-section{ padding:4.5rem 0; overflow:hidden; }
-.hero-grid{
-  display:grid; grid-template-columns:1.1fr 1fr; gap:2.5rem; align-items:center;
+.hero-section{
+  position:relative; overflow:hidden;
+  padding:7rem 0 9rem;
+  /* --hero-bg-url é definido inline no <header> (ver index.html) —
+     é o único sítio que precisas de editar para trocar o caminho. */
+  background-image:
+    linear-gradient(180deg, rgba(20,13,10,0.55) 0%, rgba(20,13,10,0.72) 55%, var(--black) 100%),
+    var(--hero-bg-url, none);
+  background-size:cover;
+  background-position:center 35%;
+  background-color:var(--brown-deep);
 }
-.hero-photo{
-  width:100%; aspect-ratio:4/3; border-radius:20px;
-  background-color:#1a100c; background-size:cover; background-position:center;
-  box-shadow:0 20px 40px rgba(0,0,0,0.45);
-  animation:floatY 4.5s ease-in-out infinite;
-  position:relative;
+/* Veio de madeira subtil por cima da foto, para nunca perder a identidade rústica */
+.hero-section::before{
+  content:''; position:absolute; inset:0; pointer-events:none; mix-blend-mode:overlay; opacity:.5;
+  background-image:repeating-linear-gradient(90deg, rgba(0,0,0,0.15) 0px, rgba(0,0,0,0.15) 1px, transparent 1px, transparent 8px);
 }
-@keyframes floatY{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-10px); } }
+.hero-grid{ position:relative; z-index:2; max-width:720px; text-align:center; margin:0 auto; }
+
+/* Transição orgânica para a secção seguinte — sombra suave em vez de
+   um corte reto, seguida de uma borda em "veio de madeira" ondulada */
+.hero-organic-edge{
+  position:absolute; left:0; bottom:-1px; width:100%; line-height:0; z-index:3;
+  filter:drop-shadow(0 -8px 18px rgba(0,0,0,0.35));
+}
+.hero-organic-edge svg{ width:100%; height:auto; display:block; }
 
 .hero-tag{ color:var(--orange-light); font-size:.95rem; font-weight:600; margin-bottom:.6rem; }
-.hero-title{ font-family:'Playfair Display',serif; font-size:2.7rem; font-weight:900; line-height:1.05; margin-bottom:1rem; }
-.hero-title span{ color:var(--orange); text-shadow:0 3px 0 rgba(0,0,0,0.3); }
+.hero-title{ font-family:'Playfair Display',serif; font-size:3.1rem; font-weight:900; line-height:1.05; margin-bottom:1rem; text-shadow:0 4px 18px rgba(0,0,0,0.5); }
+.hero-title span{ color:var(--orange-light); text-shadow:0 3px 0 rgba(0,0,0,0.3); }
 .btn-orange svg, .btn-outline svg{ flex-shrink:0; }
+.hero-grid > div[style*="flex"]{ justify-content:center; }
 
 .hero-badge{
-  position:absolute; top:-14px; right:-10px; width:96px; height:96px; border-radius:50%;
-  background:rgba(18,18,18,0.85); border:2px solid var(--orange); color:var(--cream);
+  position:absolute; top:14px; right:18px; width:92px; height:92px; border-radius:50%; z-index:2;
+  background:rgba(18,18,18,0.72); border:2px solid var(--orange); color:var(--cream);
   display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;
-  font-size:.62rem; font-weight:700; line-height:1.2; padding:.4rem;
-  animation:spinSlow 14s linear infinite;
+  font-size:.6rem; font-weight:700; line-height:1.2; padding:.4rem;
+  animation:spinSlow 14s linear infinite; backdrop-filter:blur(3px);
 }
-.hero-badge span{ font-family:'Playfair Display',serif; font-size:1.1rem; color:var(--orange-light); font-weight:900; }
+.hero-badge span{ font-family:'Playfair Display',serif; font-size:1.05rem; color:var(--orange-light); font-weight:900; }
 @keyframes spinSlow{ from{ transform:rotate(0); } to{ transform:rotate(360deg); } }
-@media (max-width:760px){ .hero-badge{ width:78px; height:78px; font-size:.55rem; top:-8px; right:2px; } .hero-badge span{ font-size:.95rem; } }
+@media (max-width:760px){
+  .hero-section{ padding:5.5rem 0 6rem; }
+  .hero-title{ font-size:2.2rem !important; }
+  .hero-badge{ width:74px; height:74px; font-size:.52rem; top:10px; right:10px; }
+  .hero-badge span{ font-size:.9rem; }
+}
 
 /* Barra de vantagens */
 .feature-bar{
@@ -227,44 +247,12 @@ label{ font-size:.85rem; display:block; margin-bottom:.35rem; color:rgba(241,231
   background:#1a1210; border:1px solid rgba(230,81,0,0.15); border-radius:14px;
   padding:1.2rem; margin:2rem 0;
 }
-/* No computador/tablet, a faixa e as 2 pistas ficam "invisíveis" como
-   estrutura — os itens comportam-se como se fossem filhos diretos do
-   grid acima (display:contents não gera caixa própria). A 2ª pista
-   (cópia, para o efeito de "fita" no telemóvel) fica escondida aqui. */
-.feature-marquee{ display:contents; }
-.feature-track{ display:contents; }
-.feature-track[aria-hidden]{ display:none; }
 .feature-item{ display:flex; align-items:flex-start; gap:.6rem; }
 .feature-item svg{ flex-shrink:0; margin-top:.1rem; }
 .feature-item h5{ font-size:.82rem; margin-bottom:.15rem; }
 .feature-item p{ font-size:.72rem; color:rgba(241,231,218,0.5); line-height:1.3; }
-
 @media (max-width:760px){
-  /* No telemóvel, a barra de vantagens fica na posição normal da página
-     (logo a seguir aos botões do topo, como antes) — só os 4 destaques
-     deslizam sozinhos para o lado dentro dela. */
-  .feature-bar{
-    display:flex; align-items:center; height:64px; padding:0; overflow:hidden;
-  }
-  .feature-marquee{
-    display:flex; align-items:center; width:max-content;
-    animation:feature-marquee-scroll 22s linear infinite;
-  }
-  .feature-track{
-    display:flex; align-items:center; flex-shrink:0; gap:2.2rem; padding:0 1.1rem;
-  }
-  .feature-item{ flex-shrink:0; width:auto; align-items:center; }
-  .feature-item h5{ margin-bottom:0; white-space:nowrap; }
-  .feature-item p{ display:none; } /* só o título, para caber numa fita fina */
-  .feature-track[aria-hidden]{ display:flex; } /* a 2ª cópia É precisa aqui, para o loop nunca mostrar um vazio */
-
-  @keyframes feature-marquee-scroll{
-    from{ transform:translateX(0); }
-    to{ transform:translateX(-50%); } /* anda exatamente a largura de 1 pista (são 2 iguais) */
-  }
-  @media (prefers-reduced-motion: reduce){
-    .feature-marquee{ animation:none; }
-  }
+  .feature-bar{ grid-template-columns:repeat(2,1fr); }
 }
 
 .section-head{ display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:1rem; }
@@ -286,9 +274,6 @@ label{ font-size:.85rem; display:block; margin-bottom:.35rem; color:rgba(241,231
 .add-round:hover{ transform:scale(1.08); filter:brightness(1.08); }
 .add-round.sm{ width:28px; height:28px; font-size:1rem; margin:.4rem auto 0; }
 
-.carousel-dots{ display:flex; justify-content:center; gap:.4rem; margin-top:.8rem; }
-.carousel-dots .dot{ width:6px; height:6px; border-radius:50%; background:rgba(241,231,218,0.25); }
-.carousel-dots .dot.active{ background:var(--orange); width:16px; border-radius:4px; transition:all .2s ease; }
 
 /* Banner de promoção */
 .promo-banner{
@@ -326,13 +311,6 @@ label{ font-size:.85rem; display:block; margin-bottom:.35rem; color:rgba(241,231
 /* Revelar secções ao fazer scroll */
 .reveal{ opacity:0; transform:translateY(26px); transition:opacity .7s ease, transform .7s ease; }
 .reveal.in-view{ opacity:1; transform:translateY(0); }
-
-@media (max-width:760px){
-  .hero-section{ padding:2.8rem 0 2.2rem; }
-  .hero-grid{ grid-template-columns:1fr; gap:1.8rem; text-align:left; }
-  .hero-photo{ order:-1; aspect-ratio:16/11; animation:none; }
-  .hero-text h1{ font-size:2rem !important; }
-}
 
 /* ============================================================
    BOTÃO FLUTUANTE DO WHATSAPP
@@ -594,7 +572,7 @@ body{ padding-bottom: calc(64px + env(safe-area-inset-bottom)); }
 .section-title{ font-size:1.5rem; margin-bottom:1.2rem; }
 .carousel-wrap{ position:relative; margin-bottom:3rem; }
 .carousel-track{
-  display:flex; gap:1rem; overflow-x:auto; scroll-behavior:smooth; scroll-snap-type:x proximity;
+  display:flex; gap:1rem; overflow-x:auto; scroll-behavior:auto; scroll-snap-type:x proximity;
   padding-bottom:.5rem; -ms-overflow-style:none; scrollbar-width:none;
 }
 .carousel-track::-webkit-scrollbar{ display:none; }
@@ -610,11 +588,17 @@ body{ padding-bottom: calc(64px + env(safe-area-inset-bottom)); }
   width:36px; height:36px; border-radius:50%; background:rgba(0,0,0,0.6);
   border:1px solid rgba(241,231,218,0.2); color:var(--cream);
   display:flex; align-items:center; justify-content:center; cursor:pointer;
+  transition:background .15s ease, transform .15s ease;
 }
+.carousel-arrow:hover{ background:var(--orange); color:#1a0d00; }
 .carousel-arrow.left{ left:-6px; }
 .carousel-arrow.right{ right:-6px; }
+
+/* ---- Fast Food: exatamente 4 cartões visíveis, carrossel infinito ---- */
+#fastfood-track{ scroll-snap-type:x mandatory; }
 .food-card{
-  flex:0 0 auto; width:220px; scroll-snap-align:start;
+  flex:0 0 calc((100% - 3 * 1rem) / 4);
+  scroll-snap-align:start;
   background:#1a1210; border-radius:14px; overflow:hidden; cursor:pointer;
 }
 .food-card .info{ padding:1rem; }
@@ -622,9 +606,19 @@ body{ padding-bottom: calc(64px + env(safe-area-inset-bottom)); }
 .food-card .desc{ font-size:.78rem; color:rgba(241,231,218,0.55); margin-bottom:.7rem; min-height:2.2em; }
 .food-card .row{ display:flex; align-items:center; justify-content:space-between; }
 .food-card .price{ color:var(--orange-light); font-weight:700; }
+@media (max-width:980px){ .food-card{ flex-basis:calc((100% - 2 * 1rem) / 3); } }
+@media (max-width:680px){ .food-card{ flex-basis:calc((100% - 1rem) / 2); } }
 
+/* ---- Bebidas: 5 visíveis, efeito coverflow (maior ao centro) ---- */
+#bebidas-track{
+  scroll-snap-type:x mandatory;
+  /* espaço nas pontas para o 1º e o último item conseguirem chegar ao centro */
+  padding-left:calc(50% - 75px); padding-right:calc(50% - 75px);
+}
 .drink-card{
-  flex:0 0 auto; width:150px; scroll-snap-align:start; text-align:center; cursor:pointer;
+  flex:0 0 150px; scroll-snap-align:center; text-align:center; cursor:pointer;
+  transition:transform .16s cubic-bezier(.25,.8,.35,1), opacity .16s ease;
+  will-change:transform; transform-origin:center center;
 }
 .drink-img{
   width:130px; height:130px; border-radius:50%; margin:0 auto .7rem;
@@ -632,8 +626,9 @@ body{ padding-bottom: calc(64px + env(safe-area-inset-bottom)); }
   display:flex; align-items:center; justify-content:center; text-align:center;
   color:rgba(241,231,218,0.4); font-size:.72rem; padding:.5rem;
   background-size:cover; background-position:center;
-  border:2px solid rgba(230,81,0,0.25);
+  border:2px solid rgba(230,81,0,0.25); transition:border-color .16s ease;
 }
+.drink-card.is-centered .drink-img{ border-color:var(--orange-light); box-shadow:0 10px 26px rgba(230,81,0,0.3); }
 .drink-card h4{ font-size:.88rem; margin-bottom:.2rem; }
 .drink-card .price{ color:var(--orange-light); font-weight:700; font-size:.85rem; margin-bottom:.5rem; }
 .age-notice{ font-size:.75rem; color:rgba(241,231,218,0.4); text-align:center; margin-top:-1.5rem; margin-bottom:2rem; }
