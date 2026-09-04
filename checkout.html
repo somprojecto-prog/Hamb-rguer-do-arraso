@@ -165,35 +165,14 @@ async function enviarEncomenda(e){
   }));
   await supabaseClient.from('order_items').insert(itens);
 
-  // A encomenda já ficou gravada no sistema — agora abre o WhatsApp com o
-  // resumo, para o restaurante também a ver de imediato no telemóvel.
-  enviarResumoWhatsApp(cart, pedido);
-
   clearCart();
   document.getElementById('checkout-content').innerHTML = `
     <div class="empty-state">
       <div class="icon">✅</div>
       <h3 class="font-display" style="font-size:1.3rem;margin-bottom:.5rem;">Encomenda recebida!</h3>
-      <p>Obrigado! Vamos preparar tudo com carinho. Se o WhatsApp não abriu sozinho, toca no botão flutuante para confirmares o teu pedido.</p>
+      <p>Obrigado! Vamos preparar tudo com carinho.</p>
       <a href="conta.html?tab=encomendas" class="btn-orange" style="margin-top:1.2rem;">Ver as minhas encomendas</a>
     </div>`;
-}
-
-function enviarResumoWhatsApp(cart, pedido){
-  const linhas = cart.map(item => {
-    const linePrice = (Number(item.preco) + lineExtrasTotal(item)) * item.quantidade;
-    const extras = (item.opcoesEscolhidas||[]).map(o => `${o.grupo}: ${o.escolha}`).join(', ');
-    return `• ${item.quantidade}x ${item.nome}${extras ? ` (${extras})` : ''} — ${formatKz(linePrice)}`;
-  }).join('\n');
-
-  const mensagem =
-    `Olá! Acabei de fazer uma encomenda no site:\n\n${linhas}\n\n` +
-    `Total: ${formatKz(pedido.total)}\n` +
-    `Morada: ${pedido.morada}\n` +
-    `Pagamento: ${pedido.pagamento}\n\n` +
-    `Obrigado!`;
-
-  sendWhatsAppMessage(mensagem);
 }
 
 init();
