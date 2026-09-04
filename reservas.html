@@ -41,7 +41,7 @@ renderTopbar('reservas');
 renderBottomNav('reservas');
 
 async function init(){
-  const auth = await requireLogin('login.html?next=reservas.html');
+  const auth = await requireLogin('login.html?next=reservas.html', 'Inicia sessão para reservares a tua mesa');
   if(!auth) return;
   const perfil = auth.profile;
 
@@ -85,7 +85,7 @@ async function init(){
     const btn = document.getElementById('reserva-btn');
     btn.disabled = true; btn.textContent = 'A enviar…';
 
-    const { error } = await supabaseClient.from('reservations').insert({
+    const reserva = {
       cliente_id: auth.session.user.id,
       nome: document.getElementById('r-nome').value.trim(),
       telefone: document.getElementById('r-telefone').value.trim(),
@@ -95,7 +95,9 @@ async function init(){
       pessoas: Number(document.getElementById('r-pessoas').value),
       tipo_mesa: document.getElementById('r-tipo').value,
       observacoes: document.getElementById('r-obs').value.trim()
-    });
+    };
+
+    const { error } = await supabaseClient.from('reservations').insert(reserva);
 
     if(error){
       document.getElementById('reserva-error').textContent = 'Não foi possível enviar a reserva.';
@@ -104,11 +106,22 @@ async function init(){
       return;
     }
 
+    // A reserva já ficou gravada — abre o WhatsApp com o resumo, para o
+    // restaurante confirmar contigo diretamente.
+    const mensagem =
+      `Olá! Gostaria de reservar uma mesa no Hambúrguer do Arraso:\n\n` +
+      `Nome: ${reserva.nome}\nTelefone: ${reserva.telefone}\n` +
+      (reserva.email ? `E-mail: ${reserva.email}\n` : '') +
+      `Data: ${reserva.data_reserva}\nHora: ${reserva.hora_reserva}\n` +
+      `Pessoas: ${reserva.pessoas}\nTipo de mesa: ${reserva.tipo_mesa}\n` +
+      (reserva.observacoes ? `Observações: ${reserva.observacoes}\n` : '');
+    sendWhatsAppMessage(mensagem);
+
     document.getElementById('reserva-content').innerHTML = `
       <div class="empty-state">
         <div class="icon">✅</div>
         <h3 class="font-display" style="font-size:1.3rem;margin-bottom:.5rem;">Reserva enviada!</h3>
-        <p>Vamos confirmar contigo brevemente.</p>
+        <p>Vamos confirmar contigo brevemente. Se o WhatsApp não abriu sozinho, toca no botão flutuante para falares connosco.</p>
       </div>`;
   });
 }

@@ -16,24 +16,33 @@
   <p>A carregar…</p>
 </div>
 
+<!-- Som de "dois blocos de madeira a chocar", usado pelos carrosséis (ver assets/carousel.js) -->
+<audio id="wood-sound" preload="auto">
+  <source src="assets/sounds/wood-click.mp3" type="audio/mpeg">
+</audio>
+
 <div id="topbar-mount"></div>
 
 <main class="wrap" style="padding:2.5rem 0 3rem;">
 
-  <div class="carousel-wrap">
+  <div class="carousel-wrap reveal">
     <p class="section-eyebrow">FAST FOOD</p>
     <h2 class="section-title">Do nosso fogão para si</h2>
-    <button class="carousel-arrow left" onclick="scrollCarousel('fastfood-track',-260)">‹</button>
-    <button class="carousel-arrow right" onclick="scrollCarousel('fastfood-track',260)">›</button>
-    <div id="fastfood-track" class="carousel-track"></div>
+    <button class="carousel-arrow left" onclick="scrollCarousel('fastfood-track',-260)" aria-label="Deslizar para a esquerda">‹</button>
+    <button class="carousel-arrow right" onclick="scrollCarousel('fastfood-track',260)" aria-label="Deslizar para a direita">›</button>
+    <div id="fastfood-track" class="carousel-track">
+      <div class="carousel-skeleton"></div><div class="carousel-skeleton"></div><div class="carousel-skeleton"></div>
+    </div>
   </div>
 
-  <div class="carousel-wrap">
+  <div class="carousel-wrap reveal">
     <p class="section-eyebrow">BEBIDAS</p>
     <h2 class="section-title">Para acompanhar</h2>
-    <button class="carousel-arrow left" onclick="scrollCarousel('bebidas-track',-180)">‹</button>
-    <button class="carousel-arrow right" onclick="scrollCarousel('bebidas-track',180)">›</button>
-    <div id="bebidas-track" class="carousel-track"></div>
+    <button class="carousel-arrow left" onclick="scrollCarousel('bebidas-track',-180)" aria-label="Deslizar para a esquerda">‹</button>
+    <button class="carousel-arrow right" onclick="scrollCarousel('bebidas-track',180)" aria-label="Deslizar para a direita">›</button>
+    <div id="bebidas-track" class="carousel-track">
+      <div class="carousel-skeleton round"></div><div class="carousel-skeleton round"></div><div class="carousel-skeleton round"></div>
+    </div>
   </div>
   <p class="age-notice">🔞 Bebidas alcoólicas destinadas apenas a maiores de 18 anos.</p>
 
@@ -45,13 +54,11 @@
 <script src="assets/common.js"></script>
 <script src="assets/cart.js"></script>
 <script src="assets/layout.js"></script>
+<script src="assets/carousel.js"></script>
 <script>
 renderTopbar('loja');
-renderBottomNav();
-
-function scrollCarousel(id, amount){
-  document.getElementById(id).scrollBy({ left: amount, behavior:'smooth' });
-}
+renderBottomNav('loja');
+bindCarouselSound();
 
 async function carregar(){
   const { data, error } = await supabaseClient.from('products').select('*').eq('ativo', true).order('nome');
@@ -84,6 +91,13 @@ async function carregar(){
   `).join('') || `<p class="empty-state">Sem bebidas disponíveis.</p>`;
 }
 carregar();
+
+const revealObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if(entry.isIntersecting){ entry.target.classList.add('in-view'); revealObserver.unobserve(entry.target); }
+  });
+}, { threshold: 0.15 });
+document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
 </script>
 </body>
 </html>

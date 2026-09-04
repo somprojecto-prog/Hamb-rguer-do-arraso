@@ -38,6 +38,18 @@ function showToast(msg){
   window.__toastTimer = setTimeout(() => el.classList.remove('show'), 2600);
 }
 
+// ============================================================
+// WHATSAPP — melhor dos dois mundos: a encomenda/reserva fica gravada
+// na base de dados E o WhatsApp abre já com a mensagem pronta a enviar.
+// ============================================================
+const WHATSAPP_NUMERO_PADRAO = '244928797993';
+
+function sendWhatsAppMessage(mensagem, numero){
+  const alvo = (numero || window.__whatsappConfigurado || WHATSAPP_NUMERO_PADRAO).replace(/\D/g, '');
+  const url = `https://wa.me/${alvo}?text=${encodeURIComponent(mensagem)}`;
+  window.open(url, '_blank', 'noopener');
+}
+
 // Envia um ficheiro de imagem para o Supabase Storage (bucket "imagens")
 // e devolve o URL público, pronto a guardar em qualquer campo *_url.
 async function uploadImagem(file){
@@ -51,7 +63,7 @@ async function uploadImagem(file){
   return data.publicUrl;
 }
 
-// Devolve a sessão atual (ou null se não houver ninguém autenticado)
+// Aplica as configurações guardadas pelo gestor (cores, logo, textos, contactos)
 async function applySiteSettings(){
   try{
     const { data } = await supabaseClient.from('site_settings').select('*').eq('id',1).single();
@@ -107,8 +119,10 @@ async function applySiteSettings(){
     }
     if(data.contacto_whatsapp){
       const numero = data.contacto_whatsapp.replace(/\D/g,'');
-      document.querySelectorAll('.js-social-whatsapp').forEach(el => el.href = `https://wa.me/c/${numero}`);
-      document.querySelectorAll('.js-whatsapp-float').forEach(el => el.href = `https://wa.me/c/${numero}`);
+      document.querySelectorAll('.js-social-whatsapp').forEach(el => el.href = `https://wa.me/${numero}`);
+      document.querySelectorAll('.js-whatsapp-float').forEach(el => el.href = `https://wa.me/${numero}`);
+      // Guarda o número configurado para ser usado por sendWhatsAppMessage()
+      window.__whatsappConfigurado = numero;
     }
     if(data.contacto_telefone){
       document.querySelectorAll('.js-contacto-telefone').forEach(el => el.textContent = data.contacto_telefone);
@@ -145,18 +159,26 @@ async function logout(){
 }
 
 // Bloqueia o acesso a páginas que exigem sessão iniciada (área do cliente).
-// Devolve {session, profile} se tudo OK, ou redireciona para o login.
-async function requireLogin(redirectTo){
+// Antes de redirecionar, mostra sempre um toast a explicar porquê — para o
+// utilizador não ficar confuso ao ser enviado de repente para o login.
+// Devolve {session, profile} se tudo OK, ou null (e redireciona).
+async function requireLogin(redirectTo, motivo){
   const session = await getSession();
   if(!session){
-    window.location.href = redirectTo || 'conta.html';
+    const mensagem = motivo || 'Inicia sessão para continuares';
+    showToast(mensagem);
+    const destino = redirectTo || 'conta.html';
+    const separador = destino.includes('?') ? '&' : '?';
+    setTimeout(() => {
+      window.location.href = destino + separador + 'motivo=' + encodeURIComponent(mensagem);
+    }, 900);
     return null;
   }
   const profile = await getProfile(session.user.id);
   return { session, profile };
 }
 
-// Bloqueia o acesso ao painel do gestor a quem não for admin.
+// Bloqueia o acesso ao painel do gestor a quem não fizer parte da equipa.
 // A verificação real (a que conta) acontece nas políticas RLS da base de
 // dados — isto aqui é só para não deixar a interface aberta a mostrar dados.
 async function requireAdmin(){

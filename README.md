@@ -64,6 +64,15 @@ Ver a página inicial, ver e pesquisar produtos, filtrar por categoria, ver deta
 ## O que o gestor pode fazer (em `/manager`)
 Adicionar, editar, apagar e ativar/desativar produtos (nome, descrição, preço, preço promocional, categoria, stock, imagem); ver todas as encomendas e reservas com todos os detalhes; mudar o estado da encomenda (Pendente → Pago → Em preparação → Enviado → Entregue, ou Cancelado); ver a lista de clientes; adicionar perguntas extra ao checkout; e ver um resumo de vendas.
 
+## Atualização — cardápio, som de madeira e papéis da equipa
+
+Depois de correres `supabase-schema.sql` e `supabase-migration-2.sql` (passo 2), corre também, por esta ordem:
+
+1. `supabase-migration-3-papeis-equipa.sql` — permite os papéis "Gestor" e "Funcionário" (o painel já tinha o ecrã para isto, só faltava a base de dados aceitar).
+2. `supabase-menu-update.sql` — substitui os produtos de exemplo pelo cardápio oficial completo (comidas e bebidas).
+
+Sobre o som de madeira dos carrosséis: já funciona sem precisares de fazer nada — é gerado na hora pelo navegador (Web Audio API). Se mais tarde quiseres usar uma gravação real de dois blocos de madeira a chocar, basta colocares o ficheiro em `assets/sounds/wood-click.mp3`; o site passa a usar automaticamente esse ficheiro em vez do som gerado.
+
 ## Notas importantes
 
 - **Imagens dos produtos:** por agora, colam-se como um link (URL) — por exemplo, carregando a imagem para um serviço como o [imgur.com](https://imgur.com) e colando o link gerado. Se quiseres upload direto de ficheiros no painel, isso usa o "Supabase Storage" — é um passo extra que posso ajudar a configurar depois.

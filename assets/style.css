@@ -109,8 +109,20 @@ h1,h2,h3,h4,.font-display{ font-family:'Playfair Display', serif; }
 }
 .btn-danger:hover{ background:rgba(198,40,40,0.2); }
 
-.card-hover{ transition:transform .2s ease, box-shadow .2s ease; }
-.card-hover:hover{ transform:translateY(-6px); }
+.card-hover{ transition:transform .22s cubic-bezier(.2,.8,.3,1), box-shadow .22s ease; }
+.card-hover:hover{ transform:translateY(-6px); box-shadow:0 14px 28px rgba(0,0,0,0.4), 0 0 0 1px rgba(230,81,0,0.15); }
+
+/* Feedback tátil imediato em qualquer botão/link que pareça clicável */
+.btn-orange:active, .btn-outline:active, .add-round:active, .carousel-arrow:active,
+.food-card:active, .drink-card:active, .product-card:active, .icon-btn:active,
+.qty-stepper button:active, .bottom-nav-item:active{
+  transform:scale(.96); transition:transform .08s ease;
+}
+
+/* Suaviza a chegada de cada página, para as trocas entre index/loja/produto
+   não parecerem um "salto" brusco */
+body{ animation:page-fade-in .35s ease both; }
+@keyframes page-fade-in{ from{ opacity:0; transform:translateY(6px); } to{ opacity:1; transform:translateY(0); } }
 
 .toast{
   position:fixed; bottom:24px; left:50%; transform:translate(-50%,20px);
@@ -479,8 +491,12 @@ label{ font-size:.85rem; display:block; margin-bottom:.35rem; color:rgba(241,231
 .pill-toggle.on{ background:rgba(46,125,50,.2); color:#8bd18f; }
 .pill-toggle.off{ background:rgba(198,40,40,.2); color:#ffb4b4; }
 
+#topbar-cart{ display:none; }
 @media (min-width: 768px){
   #topnav-desktop{ display:flex !important; }
+  #topbar-cart{ display:flex !important; }
+  #bottom-nav{ display:none !important; }
+  body{ padding-bottom:0 !important; }
 }
 
 @media (max-width: 860px){
@@ -542,6 +558,13 @@ body{ padding-bottom: calc(64px + env(safe-area-inset-bottom)); }
   padding-bottom:.5rem; -ms-overflow-style:none; scrollbar-width:none;
 }
 .carousel-track::-webkit-scrollbar{ display:none; }
+.carousel-skeleton{
+  flex:0 0 auto; width:220px; height:268px; border-radius:14px;
+  background:linear-gradient(100deg, #1a1210 30%, #241814 50%, #1a1210 70%);
+  background-size:200% 100%; animation:shimmer 1.4s ease-in-out infinite;
+}
+.carousel-skeleton.round{ width:150px; height:230px; border-radius:20px; }
+@keyframes shimmer{ 0%{ background-position:200% 0; } 100%{ background-position:-200% 0; } }
 .carousel-arrow{
   position:absolute; top:40%; transform:translateY(-50%); z-index:5;
   width:36px; height:36px; border-radius:50%; background:rgba(0,0,0,0.6);

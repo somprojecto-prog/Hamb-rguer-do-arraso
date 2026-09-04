@@ -43,7 +43,7 @@
 getSession().then(async (session) => {
   if(session){
     const profile = await getProfile(session.user.id);
-    if(profile && ['admin','gestor','funcionario'].includes(profile.role)) window.location.href = 'index.html';
+    if(profile && profile.role === 'admin') window.location.href = 'index.html';
   }
 });
 
@@ -66,7 +66,7 @@ document.getElementById('admin-login-form').addEventListener('submit', async (e)
   }
 
   const profile = await getProfile(data.user.id);
-  if(!profile || !['admin','gestor','funcionario'].includes(profile.role)){
+  if(!profile || profile.role !== 'admin'){
     await supabaseClient.auth.signOut();
     errEl.textContent = 'Esta conta não tem permissões de administrador.';
     errEl.style.display = 'block';
@@ -78,4 +78,4 @@ document.getElementById('admin-login-form').addEventListener('submit', async (e)
 });
 </script>
 </body>
-</html>
+  </html>

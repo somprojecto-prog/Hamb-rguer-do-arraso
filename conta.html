@@ -127,7 +127,7 @@ async function carregarFavoritos(){
 }
 
 async function init(){
-  const auth = await requireLogin('login.html?next=conta.html');
+  const auth = await requireLogin('login.html?next=conta.html', 'Inicia sessão para veres a tua conta');
   if(!auth) return;
   sessao = auth.session; perfil = auth.profile;
   renderPerfil();

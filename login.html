@@ -19,9 +19,9 @@
 <div id="topbar-mount"></div>
 
 <div class="auth-shell">
-  <div class="auth-card burn-edge">
+  <div class="auth-card burn-edge reveal in-view">
     <h2 class="font-display">Entrar na tua conta</h2>
-    <p class="sub">Acompanha as tuas encomendas e guarda os teus dados.</p>
+    <p class="sub" id="login-sub">Acompanha as tuas encomendas e guarda os teus dados.</p>
 
     <form id="login-form">
       <div class="field">
@@ -55,6 +55,11 @@
 <script>
 renderTopbar();
 renderBottomNav();
+
+// Se o utilizador foi enviado para cá a partir de uma ação que exige sessão
+// (ver requireLogin em common.js), mostra aqui o motivo, de forma amigável.
+const motivo = new URLSearchParams(window.location.search).get('motivo');
+if(motivo){ document.getElementById('login-sub').textContent = motivo; }
 
 async function entrarComGoogle(){
   await supabaseClient.auth.signInWithOAuth({
