@@ -120,8 +120,11 @@ h1,h2,h3,h4,.font-display{ font-family:'Playfair Display', serif; }
 }
 
 /* Suaviza a chegada de cada página, para as trocas entre index/loja/produto
-   não parecerem um "salto" brusco */
-body{ animation:page-fade-in .35s ease both; }
+   não parecerem um "salto" brusco — aplicado a cada elemento direto do body
+   EXCETO o ecrã de carregamento (opacity de um "pai" afeta sempre os filhos
+   por baixo dele, por isso a animação não pode ir no body em si, ou o
+   próprio ecrã de carregamento ficava semi-transparente). */
+body > *:not(#loading-overlay){ animation:page-fade-in .35s ease both; }
 @keyframes page-fade-in{ from{ opacity:0; transform:translateY(6px); } to{ opacity:1; transform:translateY(0); } }
 
 .toast{
@@ -219,12 +222,53 @@ label{ font-size:.85rem; display:block; margin-bottom:.35rem; color:rgba(241,231
   background:#1a1210; border:1px solid rgba(230,81,0,0.15); border-radius:14px;
   padding:1.2rem; margin:2rem 0;
 }
+/* No computador/tablet, a faixa e as 2 pistas ficam "invisíveis" como
+   estrutura — os itens comportam-se como se fossem filhos diretos do
+   grid acima (display:contents não gera caixa própria). A 2ª pista
+   (cópia, para o efeito de "fita" no telemóvel) fica escondida aqui. */
+.feature-marquee{ display:contents; }
+.feature-track{ display:contents; }
+.feature-track[aria-hidden]{ display:none; }
 .feature-item{ display:flex; align-items:flex-start; gap:.6rem; }
 .feature-item svg{ flex-shrink:0; margin-top:.1rem; }
 .feature-item h5{ font-size:.82rem; margin-bottom:.15rem; }
 .feature-item p{ font-size:.72rem; color:rgba(241,231,218,0.5); line-height:1.3; }
+
 @media (max-width:760px){
-  .feature-bar{ grid-template-columns:repeat(2,1fr); }
+  /* No telemóvel, a barra de vantagens sai do fluxo normal da página e
+     fica fixa no fundo do ecrã, tal como a barra de navegação — mas por
+     cima dela — com os 4 destaques a deslizar sozinhos para o lado. */
+  .feature-bar{
+    position:fixed; left:0; right:0;
+    bottom:calc(60px + env(safe-area-inset-bottom));
+    z-index:89; margin:0; padding:0; border-radius:0;
+    border:none; border-top:1px solid rgba(230,81,0,0.2);
+    background:rgba(26,18,16,0.97); backdrop-filter:blur(8px);
+    display:flex; align-items:center; height:56px; overflow:hidden;
+  }
+  .feature-marquee{
+    display:flex; align-items:center; width:max-content;
+    animation:feature-marquee-scroll 22s linear infinite;
+  }
+  .feature-track{
+    display:flex; align-items:center; flex-shrink:0; gap:2.2rem; padding:0 1.1rem;
+  }
+  .feature-item{ flex-shrink:0; width:auto; align-items:center; }
+  .feature-item h5{ margin-bottom:0; white-space:nowrap; }
+  .feature-item p{ display:none; } /* só o título, para caber numa fita fina */
+  .feature-track[aria-hidden]{ display:flex; } /* a 2ª cópia É precisa aqui, para o loop nunca mostrar um vazio */
+
+  @keyframes feature-marquee-scroll{
+    from{ transform:translateX(0); }
+    to{ transform:translateX(-50%); } /* anda exatamente a largura de 1 pista (são 2 iguais) */
+  }
+  @media (prefers-reduced-motion: reduce){
+    .feature-marquee{ animation:none; }
+  }
+
+  /* Compensa o espaço ocupado pelas duas barras fixas empilhadas, para o
+     fim da página não ficar escondido por baixo delas. */
+  body{ padding-bottom:calc(64px + 56px + env(safe-area-inset-bottom)) !important; }
 }
 
 .section-head{ display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:1rem; }
