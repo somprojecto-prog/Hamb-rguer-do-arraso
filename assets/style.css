@@ -124,8 +124,13 @@ h1,h2,h3,h4,.font-display{ font-family:'Playfair Display', serif; }
    EXCETO o ecrã de carregamento (opacity de um "pai" afeta sempre os filhos
    por baixo dele, por isso a animação não pode ir no body em si, ou o
    próprio ecrã de carregamento ficava semi-transparente). */
+/* IMPORTANTE: esta animação usa só "opacity", nunca "transform" — um
+   transform aqui (mesmo pequeno, tipo translateY) faz qualquer elemento
+   fixo lá dentro (menu de baixo, fita de destaques) parar de se colar
+   ao ecrã e passar a colar-se a esta caixa em vez disso. Já aconteceu
+   uma vez, por isso: não voltar a adicionar transform aqui. */
 body > *:not(#loading-overlay){ animation:page-fade-in .35s ease both; }
-@keyframes page-fade-in{ from{ opacity:0; transform:translateY(6px); } to{ opacity:1; transform:translateY(0); } }
+@keyframes page-fade-in{ from{ opacity:0; } to{ opacity:1; } }
 
 .toast{
   position:fixed; bottom:24px; left:50%; transform:translate(-50%,20px);
