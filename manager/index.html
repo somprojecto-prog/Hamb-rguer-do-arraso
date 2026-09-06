@@ -498,6 +498,7 @@ function mostrarPreviewImagem(hiddenId, url){
 }
 
 function abrirModalProduto(produto){
+  document.getElementById('encomenda-modal').classList.remove('open');
   currentProdutoId = produto ? produto.id : null;
   currentOpcoes = produto && produto.opcoes ? JSON.parse(JSON.stringify(produto.opcoes)) : [];
   document.getElementById('produto-modal-titulo').textContent = produto ? 'Editar produto' : 'Novo produto';
@@ -619,6 +620,7 @@ async function mudarEstado(orderId, status){
 }
 
 async function verDetalheEncomenda(o){
+  document.getElementById('produto-modal').classList.remove('open');
   const itens = o.order_items.map(i => {
     const opcoes = (i.extras||[]).map(op => `${op.grupo}: ${op.escolha}${op.preco?` (+${formatKz(op.preco)})`:''}`).join(' · ');
     return `<p style="font-size:.88rem;margin-bottom:.3rem;">${i.quantidade}x ${i.nome} — ${formatKz(i.preco*i.quantidade)}
