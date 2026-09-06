@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hambúrguer do Arraso</title>
+<link rel="stylesheet" href="assets/style.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+<div id="loading-overlay">
+  <div class="loading-burger-wrap">
+    <img src="assets/loading-burger.png" alt="A carregar…">
+  </div>
+  <p>A carregar…</p>
+</div>
+
+<!-- Som de "dois blocos de madeira a chocar", usado pelos carrosséis (ver assets/carousel.js) -->
+<audio id="wood-sound" preload="auto">
+  <source src="assets/sounds/wood-click.mp3" type="audio/mpeg">
+</audio>
+
+<div id="topbar-mount"></div>
+
+<!-- ============================================================
+     IMAGEM DE FUNDO PRINCIPAL (hero)
+     Para trocares por uma imagem tua, tens 2 opções:
+       1) Ficheiro: substitui assets/img/hero-bg.jpg (mesmo nome) OU
+          muda o caminho no "--hero-bg-url" aqui em baixo.
+       2) Sem mexer em código: Painel do Gestor → Aparência →
+          "Imagem de fundo" — essa opção tem sempre prioridade sobre
+          esta (ver assets/common.js → applySiteSettings → hero_url).
+     ============================================================ -->
+<header class="wood-texture hero-section" style="--hero-bg-url:url('assets/img/hero-bg.jpg');">
+  <div class="wrap hero-grid">
+    <div class="reveal">
+      <p class="hero-tag">O melhor da banda 🔥</p>
+      <h1 class="hero-title">Hambúrguer<br>do <span>Arraso</span></h1>
+      <p class="js-hero-descricao" style="color:rgba(241,231,218,0.8);font-size:1.05rem;margin-bottom:2rem;">Faz a tua encomenda online e recebe em casa, ou reserva a tua mesa.</p>
+      <div style="display:flex;gap:.8rem;flex-wrap:wrap;justify-content:center;">
+        <a href="loja.html" class="btn-orange btn-pulse">Ver menu
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </a>
+        <a href="reservas.html" class="btn-outline">Reservar mesa
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>
+        </a>
+      </div>
+    </div>
+    <div class="hero-badge">
+      <span>100%</span>
+      Carne bovina<br>premium
+    </div>
+  </div>
+
+  <!-- Transição orgânica para a secção do menu — em vez de um corte reto,
+       uma borda ondulada com sombra suave, mantendo o espírito "veio de
+       madeira" do resto do site. -->
+  <div class="hero-organic-edge" aria-hidden="true">
+    <svg viewBox="0 0 1440 90" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M0,40 C 240,90 480,0 720,32 C 960,64 1200,8 1440,44 L1440,90 L0,90 Z" fill="#121212"></path>
+    </svg>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="feature-bar reveal">
+    <div class="feature-item">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--orange-light)" stroke-width="1.8"><path d="M12 2c1.5 3-1 4-1 6.5A3.5 3.5 0 0 0 15 12c0-1-.3-1.7-.7-2.3.9.3 2.7 1.8 2.7 4.8a5 5 0 0 1-10 0c0-3.5 2-4.7 3-7 .6-1.3.4-2.7 0-3.5.6.2 1.5.7 2 3z"/></svg>
+      <div><h5>Grelhado na hora</h5><p>Sabor único que só o fogo dá</p></div>
+    </div>
+    <div class="feature-item">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--orange-light)" stroke-width="1.8"><path d="M3 12h18M5 12a7 7 0 0 1 14 0M2 12h20l-1.5 5H3.5z"/></svg>
+      <div><h5>Entrega rápida</h5><p>Em sua casa num instante</p></div>
+    </div>
+    <div class="feature-item">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--orange-light)" stroke-width="1.8"><circle cx="12" cy="8" r="5"/><path d="M8.5 12.5 7 21l5-2.5L17 21l-1.5-8.5"/></svg>
+      <div><h5>Ingredientes frescos</h5><p>Qualidade premium todos os dias</p></div>
+    </div>
+    <div class="feature-item">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--orange-light)" stroke-width="1.8"><path d="M12 21s-7.5-4.6-10-9.3C.4 8 2.3 4 6.3 4c2 0 3.6 1.2 5.7 3.6C14.1 5.2 15.7 4 17.7 4c4 0 5.9 4 4.3 7.7-2.5 4.7-10 9.3-10 9.3z"/></svg>
+      <div><h5>Feito com amor</h5><p>Paixão em cada detalhe</p></div>
+    </div>
+  </div>
+</div>
+
+<main class="wrap" style="padding:2.5rem 0;">
+
+  <div class="carousel-wrap reveal">
+    <div class="section-head">
+      <div>
+        <p class="section-eyebrow">FAST FOOD</p>
+        <h2 class="section-title">Do nosso fogão para si</h2>
+      </div>
+      <a href="loja.html" class="ver-tudo">Ver tudo
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg>
+      </a>
+    </div>
+    <button class="carousel-arrow left" onclick="scrollCarouselStep('fastfood-track',-1)" aria-label="Deslizar para a esquerda">‹</button>
+    <button class="carousel-arrow right" onclick="scrollCarouselStep('fastfood-track',1)" aria-label="Deslizar para a direita">›</button>
+    <div id="fastfood-track" class="carousel-track">
+      <div class="carousel-skeleton"></div><div class="carousel-skeleton"></div><div class="carousel-skeleton"></div><div class="carousel-skeleton"></div>
+    </div>
+  </div>
+
+  <div class="carousel-wrap reveal">
+    <div class="section-head">
+      <div>
+        <p class="section-eyebrow">BEBIDAS</p>
+        <h2 class="section-title">Para acompanhar</h2>
+      </div>
+      <a href="loja.html" class="ver-tudo">Ver tudo
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg>
+      </a>
+    </div>
+    <button class="carousel-arrow left" onclick="scrollCarouselStep('bebidas-track',-1)" aria-label="Deslizar para a esquerda">‹</button>
+    <button class="carousel-arrow right" onclick="scrollCarouselStep('bebidas-track',1)" aria-label="Deslizar para a direita">›</button>
+    <div id="bebidas-track" class="carousel-track">
+      <div class="carousel-skeleton round"></div><div class="carousel-skeleton round"></div><div class="carousel-skeleton round"></div><div class="carousel-skeleton round"></div><div class="carousel-skeleton round"></div>
+    </div>
+  </div>
+  <p class="age-notice">🔞 Bebidas alcoólicas destinadas apenas a maiores de 18 anos.</p>
+
+  <div class="promo-banner reveal">
+    <div class="promo-icon">
+      <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="var(--orange-light)" stroke-width="1.8"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M9 2h6M12 2v2"/></svg>
+    </div>
+    <div class="promo-text">
+      <p class="section-eyebrow" style="margin-bottom:.2rem;">OFERTA ESPECIAL</p>
+      <h3>10% de desconto</h3>
+      <p style="color:rgba(241,231,218,0.6);font-size:.85rem;">na tua primeira encomenda!</p>
+    </div>
+    <div class="promo-code">
+      <span>CÓDIGO</span>
+      ARRASO10
+    </div>
+  </div>
+
+</main>
+
+<footer class="charcoal-texture" style="padding:2.5rem 0;border-top:1px solid rgba(241,231,218,0.08);">
+  <div class="wrap" style="text-align:center;">
+    <p style="font-size:.8rem;letter-spacing:.1em;text-transform:uppercase;color:rgba(241,231,218,0.45);margin-bottom:.9rem;">Redes sociais</p>
+    <div class="social-row">
+      <a href="https://instagram.com/" target="_blank" rel="noopener" aria-label="Instagram" class="social-icon js-social-instagram">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1"/></svg>
+      </a>
+      <a href="https://facebook.com/" target="_blank" rel="noopener" aria-label="Facebook" class="social-icon js-social-facebook">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+      </a>
+      <a href="https://wa.me/244928797993" target="_blank" rel="noopener" aria-label="WhatsApp" class="social-icon js-social-whatsapp">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2c-5.5 0-10 4.5-10 10 0 1.77.46 3.45 1.32 4.94L2 22l5.2-1.36A9.94 9.94 0 0 0 12.04 22c5.5 0 10-4.5 10-10s-4.5-10-10-10zm0 18.14c-1.6 0-3.16-.43-4.5-1.24l-.32-.19-3.08.81.82-3-.21-.33a8.15 8.15 0 0 1-1.25-4.35c0-4.51 3.67-8.18 8.18-8.18s8.18 3.67 8.18 8.18-3.67 8.3-8.18 8.3zm4.5-6.1c-.25-.12-1.45-.72-1.67-.8-.22-.08-.39-.12-.55.12-.16.25-.63.8-.77.97-.14.16-.28.18-.53.06-.25-.12-1.04-.38-1.98-1.22-.73-.65-1.22-1.45-1.37-1.7-.14-.25-.02-.38.11-.5.11-.11.25-.28.37-.42.12-.14.16-.24.24-.4.08-.16.04-.3-.02-.42-.06-.12-.55-1.33-.76-1.82-.2-.48-.4-.42-.55-.42h-.47c-.16 0-.42.06-.64.3-.22.25-.84.82-.84 2s.86 2.32.98 2.48c.12.16 1.7 2.6 4.13 3.64.58.25 1.03.4 1.38.51.58.18 1.11.16 1.53.1.47-.07 1.45-.59 1.65-1.16.2-.57.2-1.06.14-1.16-.06-.1-.22-.16-.47-.28z"/></svg>
+      </a>
+    </div>
+    <p id="footer-copy" style="font-size:.85rem;color:rgba(241,231,218,0.5);margin-top:1.5rem;">
+      © <span id="ano"></span> Hambúrguer do Arraso — Todos os direitos reservados.
+    </p>
+  </div>
+</footer>
+
+<a href="https://wa.me/244928797993" target="_blank" rel="noopener" class="whatsapp-float js-whatsapp-float" aria-label="Fala connosco no WhatsApp">
+  <svg width="30" height="30" viewBox="0 0 24 24" fill="#fff"><path d="M12.04 2c-5.5 0-10 4.5-10 10 0 1.77.46 3.45 1.32 4.94L2 22l5.2-1.36A9.94 9.94 0 0 0 12.04 22c5.5 0 10-4.5 10-10s-4.5-10-10-10zm0 18.14c-1.6 0-3.16-.43-4.5-1.24l-.32-.19-3.08.81.82-3-.21-.33a8.15 8.15 0 0 1-1.25-4.35c0-4.51 3.67-8.18 8.18-8.18s8.18 3.67 8.18 8.18-3.67 8.3-8.18 8.3zm4.5-6.1c-.25-.12-1.45-.72-1.67-.8-.22-.08-.39-.12-.55.12-.16.25-.63.8-.77.97-.14.16-.28.18-.53.06-.25-.12-1.04-.38-1.98-1.22-.73-.65-1.22-1.45-1.37-1.7-.14-.25-.02-.38.11-.5.11-.11.25-.28.37-.42.12-.14.16-.24.24-.4.08-.16.04-.3-.02-.42-.06-.12-.55-1.33-.76-1.82-.2-.48-.4-.42-.55-.42h-.47c-.16 0-.42.06-.64.3-.22.25-.84.82-.84 2s.86 2.32.98 2.48c.12.16 1.7 2.6 4.13 3.64.58.25 1.03.4 1.38.51.58.18 1.11.16 1.53.1.47-.07 1.45-.59 1.65-1.16.2-.57.2-1.06.14-1.16-.06-.1-.22-.16-.47-.28z"/></svg>
+</a>
+
+<div id="bottom-nav-mount"></div>
+
+<script src="assets/supabase-config.js"></script>
+<script src="assets/common.js"></script>
+<script src="assets/cart.js"></script>
+<script src="assets/layout.js"></script>
+<script src="assets/carousel.js"></script>
+<script>
+document.getElementById('ano').textContent = new Date().getFullYear();
+renderTopbar('home');
+renderBottomNav('home');
+bindCarouselSound();
+
+function cartaoFastFood(p, destaque){
+  return `
+    <a href="produto.html?id=${p.id}" class="food-card burn-edge card-hover">
+      ${destaque ? '<span class="badge-tag">🔥 Mais pedido</span>' : ''}
+      <div class="product-img" style="${p.imagem_url?`background-image:url(${p.imagem_url})`:''}">${p.imagem_url?'':`[ Foto — ${p.nome} ]`}</div>
+      <div class="info">
+        <h4>${p.nome}</h4>
+        <p class="desc">${p.descricao || ''}</p>
+        <div class="row">
+          <span class="price">${formatKz(p.preco_promocional || p.preco)}</span>
+          <button class="add-round" onclick="event.preventDefault(); window.location.href='produto.html?id=${p.id}'" aria-label="Adicionar">+</button>
+        </div>
+      </div>
+    </a>`;
+}
+function cartaoBebida(p){
+  return `
+    <a href="produto.html?id=${p.id}" class="drink-card">
+      <div class="drink-img" style="${p.imagem_url?`background-image:url(${p.imagem_url})`:''}">${p.imagem_url?'':p.nome}</div>
+      <h4>${p.nome}</h4>
+      <p class="price">${formatKz(p.preco_promocional || p.preco)}</p>
+      <button class="add-round sm" onclick="event.preventDefault(); window.location.href='produto.html?id=${p.id}'" aria-label="Adicionar">+</button>
+    </a>`;
+}
+
+async function carregarDestaques(){
+  const { data, error } = await supabaseClient
+    .from('products')
+    .select('*')
+    .eq('ativo', true)
+    .order('ordem', { ascending: true });
+
+  if(error || !data){
+    document.getElementById('fastfood-track').innerHTML = `<p class="empty-state">Não foi possível carregar os produtos.</p>`;
+    return;
+  }
+
+  const fastfood = data.filter(p => p.categoria === 'fastfood');
+  const bebidas = data.filter(p => p.categoria === 'bebidas');
+
+  renderCarouselTrack('fastfood-track', fastfood, (p, i) => cartaoFastFood(p, i === 0));
+  renderCarouselTrack('bebidas-track', bebidas, cartaoBebida);
+}
+carregarDestaques();
+
+const revealObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if(entry.isIntersecting){ entry.target.classList.add('in-view'); revealObserver.unobserve(entry.target); }
+  });
+}, { threshold: 0.15 });
+document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+</script>
+</body>
+</html>

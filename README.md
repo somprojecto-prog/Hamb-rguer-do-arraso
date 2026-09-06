@@ -69,7 +69,8 @@ Adicionar, editar, apagar e ativar/desativar produtos (nome, descrição, preço
 Depois de correres `supabase-schema.sql` e `supabase-migration-2.sql` (passo 2), corre também, por esta ordem:
 
 1. `supabase-migration-3-papeis-equipa.sql` — permite os papéis "Gestor" e "Funcionário" (o painel já tinha o ecrã para isto, só faltava a base de dados aceitar).
-2. `supabase-menu-update.sql` — substitui os produtos de exemplo pelo cardápio oficial completo (comidas e bebidas).
+2. `supabase-migration-4-ordem-produtos.sql` — adiciona o campo "ordem", para o cardápio aparecer sempre na sequência certa (e não por data ou alfabeticamente).
+3. `supabase-menu-update.sql` — substitui os produtos de exemplo pelo cardápio oficial completo, já com a ordem definida (só corre isto uma vez).
 
 Sobre o som de madeira dos carrosséis: já funciona sem precisares de fazer nada — é gerado na hora pelo navegador (Web Audio API). Se mais tarde quiseres usar uma gravação real de dois blocos de madeira a chocar, basta colocares o ficheiro em `assets/sounds/wood-click.mp3`; o site passa a usar automaticamente esse ficheiro em vez do som gerado.
 
