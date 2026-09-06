@@ -74,6 +74,14 @@ function scrollCarousel(id, amount){
   playWoodSound();
 }
 
+// Mesma coisa, mas por "passo" (direção -1 ou 1) em vez de um nº de pixels
+// fixo — desliza quase a largura visível do carrossel de cada vez.
+function scrollCarouselStep(id, direction){
+  const track = document.getElementById(id);
+  if(!track) return;
+  scrollCarousel(id, track.clientWidth * 0.8 * direction);
+}
+
 // Liga o som ao scroll manual (arrastar/deslizar) de todos os carrosséis da página
 function bindCarouselSound(){
   document.querySelectorAll('.carousel-track').forEach(track => {
