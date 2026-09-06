@@ -368,12 +368,7 @@ function removerEscolha(gi, ei){ currentOpcoes[gi].escolhas.splice(ei,1); render
 function atualizarEscolhaNome(gi, ei, valor){ currentOpcoes[gi].escolhas[ei].nome = valor; }
 function atualizarEscolhaPreco(gi, ei, valor){ currentOpcoes[gi].escolhas[ei].preco = Number(valor)||0; }
 
-function fecharTodosModais(){
-  document.querySelectorAll('.modal-backdrop').forEach(m => m.classList.remove('open'));
-}
-
 function mudarView(view){
-  fecharTodosModais();
   document.querySelectorAll('.admin-nav-link[data-view]').forEach(a => a.classList.toggle('active', a.dataset.view === view));
   document.querySelectorAll('.admin-view').forEach(v => v.classList.remove('active'));
   document.getElementById('view-' + view).classList.add('active');
@@ -503,7 +498,6 @@ function mostrarPreviewImagem(hiddenId, url){
 }
 
 function abrirModalProduto(produto){
-  fecharTodosModais();
   currentProdutoId = produto ? produto.id : null;
   currentOpcoes = produto && produto.opcoes ? JSON.parse(JSON.stringify(produto.opcoes)) : [];
   document.getElementById('produto-modal-titulo').textContent = produto ? 'Editar produto' : 'Novo produto';
@@ -625,7 +619,6 @@ async function mudarEstado(orderId, status){
 }
 
 async function verDetalheEncomenda(o){
-  fecharTodosModais();
   const itens = o.order_items.map(i => {
     const opcoes = (i.extras||[]).map(op => `${op.grupo}: ${op.escolha}${op.preco?` (+${formatKz(op.preco)})`:''}`).join(' · ');
     return `<p style="font-size:.88rem;margin-bottom:.3rem;">${i.quantidade}x ${i.nome} — ${formatKz(i.preco*i.quantidade)}
