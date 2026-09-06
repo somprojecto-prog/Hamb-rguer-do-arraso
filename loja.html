@@ -61,7 +61,7 @@ renderBottomNav('loja');
 bindCarouselSound();
 
 async function carregar(){
-  const { data, error } = await supabaseClient.from('products').select('*').eq('ativo', true).order('ordem', { ascending:true }).order('nome');
+  const { data, error } = await supabaseClient.from('products').select('*').eq('ativo', true).order('nome');
   if(error || !data){ return; }
 
   const fastfood = data.filter(p => p.categoria === 'fastfood');
