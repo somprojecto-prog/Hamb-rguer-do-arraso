@@ -68,6 +68,10 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4 6.5V11c0 4.8 3.2 8.7 8 10 4.8-1.3 8-5.2 8-10V6.5L12 3Z"/><path d="M9.5 12 11 13.5 15 9.5"/></svg>
           <span>Utilizadores</span>
         </a>
+        <a class="admin-nav-link" data-view="notificacoes" data-roles="admin,gestor" onclick="mudarView('notificacoes')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v11H8l-4 4V5Z"/><path d="M8 9h8M8 12h5"/></svg>
+          <span>Notificações</span>
+        </a>
       </div>
     </nav>
 
@@ -257,6 +261,34 @@
       </div>
     </div>
 
+    <!-- NOTIFICAÇÕES (EmailJS) -->
+    <div id="view-notificacoes" class="admin-view">
+      <div class="admin-toolbar"><h2>Notificações</h2></div>
+      <div class="admin-card" style="max-width:520px;">
+        <p style="color:rgba(241,231,218,0.55);font-size:.85rem;margin-bottom:1.2rem;">
+          Envia um e-mail automático para o dono sempre que um cliente finaliza uma encomenda, usando o EmailJS. Precisa de criar uma conta grátis em
+          <a href="https://www.emailjs.com" target="_blank" rel="noopener" style="color:var(--orange-light);">emailjs.com</a>
+          e colar aqui os 3 códigos que ele lhe dá.
+        </p>
+
+        <label style="display:flex;align-items:center;gap:.6rem;margin-bottom:1.2rem;cursor:pointer;">
+          <input type="checkbox" id="nt-ativo" style="width:18px;height:18px;">
+          <span>Ativar notificações por e-mail</span>
+        </label>
+
+        <div class="field"><label>Service ID</label><input id="nt-service" type="text" placeholder="service_xxxxxxx"></div>
+        <div class="field"><label>Template ID</label><input id="nt-template" type="text" placeholder="template_xxxxxxx"></div>
+        <div class="field"><label>Public Key</label><input id="nt-publickey" type="text" placeholder="a chave pública, em Account → General"></div>
+
+        <button class="btn-orange" onclick="guardarNotificacoes()">Guardar</button>
+        <p id="notificacoes-status" style="font-size:.85rem;color:#8bd18f;margin-top:.6rem;"></p>
+
+        <p style="color:rgba(241,231,218,0.4);font-size:.78rem;margin-top:1.2rem;">
+          No template do EmailJS, pode usar estas variáveis: <code>{{customer_name}}</code>, <code>{{phone}}</code>, <code>{{address}}</code>, <code>{{payment}}</code>, <code>{{items}}</code>, <code>{{total}}</code>, <code>{{order_id}}</code>.
+        </p>
+      </div>
+    </div>
+
   </main>
 </div>
 
@@ -380,6 +412,7 @@ function mudarView(view){
   if(view === 'campos') carregarCampos();
   if(view === 'aparencia') carregarAparencia();
   if(view === 'utilizadores') carregarUtilizadores();
+  if(view === 'notificacoes') carregarNotificacoes();
   if(view === 'textos') carregarTextos();
 }
 
@@ -900,6 +933,27 @@ function aplicarPermissoesMenu(){
   });
   const btnNovoProduto = document.getElementById('btn-novo-produto');
   if(btnNovoProduto) btnNovoProduto.style.display = (meuPapel === 'funcionario') ? 'none' : '';
+}
+
+/* ================= NOTIFICAÇÕES (EmailJS) ================= */
+async function carregarNotificacoes(){
+  const { data } = await supabaseClient.from('site_settings').select('*').eq('id',1).single();
+  if(!data) return;
+  document.getElementById('nt-ativo').checked = !!data.emailjs_ativo;
+  document.getElementById('nt-service').value = data.emailjs_service_id || '';
+  document.getElementById('nt-template').value = data.emailjs_template_id || '';
+  document.getElementById('nt-publickey').value = data.emailjs_public_key || '';
+}
+async function guardarNotificacoes(){
+  const payload = {
+    emailjs_ativo: document.getElementById('nt-ativo').checked,
+    emailjs_service_id: document.getElementById('nt-service').value.trim() || null,
+    emailjs_template_id: document.getElementById('nt-template').value.trim() || null,
+    emailjs_public_key: document.getElementById('nt-publickey').value.trim() || null
+  };
+  const { error } = await supabaseClient.from('site_settings').update(payload).eq('id',1);
+  if(error){ showToast('Não foi possível guardar (só Admin/Gestor pode editar).'); return; }
+  document.getElementById('notificacoes-status').textContent = 'Guardado!';
 }
 
 async function init(){
