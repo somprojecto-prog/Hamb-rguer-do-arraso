@@ -236,7 +236,7 @@
         <div class="field"><label>Telefone</label><input id="tx-telefone" type="text" placeholder="9XX XXX XXX"></div>
         <div class="field"><label>E-mail</label><input id="tx-email" type="email" placeholder="contacto@exemplo.com"></div>
         <div class="field"><label>Número de WhatsApp (só dígitos, com indicativo do país)</label><input id="tx-whatsapp" type="text" placeholder="244928797993"></div>
-        <div class="field"><label>Morada</label><input id="tx-morada" type="text" placeholder="Rua, cidade"></div>
+        <div class="field"><label>Morada (aparece também no mapa da página inicial e das reservas)</label><input id="tx-morada" type="text" placeholder="Rua, cidade"></div>
 
         <h3 style="font-size:1rem;margin:1.4rem 0 .8rem;color:var(--orange-light);">Redes sociais</h3>
         <div class="field"><label>Link do Instagram</label><input id="tx-instagram" type="text" placeholder="https://instagram.com/…"></div>
@@ -311,7 +311,7 @@
         <div style="display:flex;gap:1rem;">
           <div class="field" style="flex:1;">
             <label>Categoria</label>
-            <select id="pf-categoria"><option value="fastfood">Fast Food</option><option value="bebidas">Bebidas</option></select>
+            <select id="pf-categoria" onchange="atualizarVisibilidadeAlcoolica()"><option value="fastfood">Fast Food</option><option value="bebidas">Bebidas</option></select>
           </div>
           <div class="field" style="flex:1;"><label>Stock</label><input id="pf-stock" type="number" min="0" value="0"></div>
         </div>
@@ -327,6 +327,9 @@
         </div>
         <label style="display:flex;align-items:center;gap:.5rem;margin-bottom:1rem;">
           <input id="pf-ativo" type="checkbox" checked style="width:auto;"> Produto ativo (visível no site)
+        </label>
+        <label id="pf-alcoolica-wrap" style="display:none;align-items:center;gap:.5rem;margin-bottom:1rem;">
+          <input id="pf-alcoolica" type="checkbox" style="width:auto;"> 🔞 Bebida alcoólica (destacada como 18+ no site)
         </label>
 
         <div style="border-top:1px solid rgba(241,231,218,0.1);padding-top:1rem;margin-bottom:1rem;">
@@ -543,8 +546,16 @@ function abrirModalProduto(produto){
   document.getElementById('pf-stock').value = produto ? produto.stock : 0;
   mostrarPreviewImagem('pf-imagem', produto ? produto.imagem_url || '' : '');
   document.getElementById('pf-ativo').checked = produto ? produto.ativo : true;
+  document.getElementById('pf-alcoolica').checked = produto ? !!produto.alcoolica : false;
+  atualizarVisibilidadeAlcoolica();
   renderOpcoesEditor();
   document.getElementById('produto-modal').classList.add('open');
+}
+function atualizarVisibilidadeAlcoolica(){
+  const isBebida = document.getElementById('pf-categoria').value === 'bebidas';
+  const wrap = document.getElementById('pf-alcoolica-wrap');
+  wrap.style.display = isBebida ? 'flex' : 'none';
+  if(!isBebida) document.getElementById('pf-alcoolica').checked = false;
 }
 function fecharModalProduto(){ document.getElementById('produto-modal').classList.remove('open'); }
 
@@ -559,6 +570,7 @@ document.getElementById('produto-form').addEventListener('submit', async (e) => 
     stock: Number(document.getElementById('pf-stock').value),
     imagem_url: document.getElementById('pf-imagem').value.trim() || null,
     ativo: document.getElementById('pf-ativo').checked,
+    alcoolica: document.getElementById('pf-categoria').value === 'bebidas' ? document.getElementById('pf-alcoolica').checked : false,
     opcoes: currentOpcoes.filter(g => g.nome && g.escolhas.length)
   };
   if(currentProdutoId){
