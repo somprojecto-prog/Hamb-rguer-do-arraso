@@ -6,6 +6,7 @@
 <title>Finalizar encomenda — Hambúrguer do Arraso</title>
 <link rel="stylesheet" href="assets/style.css">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 </head>
 <body>
 
@@ -165,6 +166,10 @@ async function enviarEncomenda(e){
   }));
   await supabaseClient.from('order_items').insert(itens);
 
+  // Notifica o dono por e-mail (não bloqueia a confirmação ao cliente
+  // se isto falhar ou demorar — a encomenda já está gravada de qualquer forma).
+  enviarNotificacaoEmailJS(pedido, itens, order);
+
   clearCart();
   document.getElementById('checkout-content').innerHTML = `
     <div class="empty-state">
@@ -175,7 +180,39 @@ async function enviarEncomenda(e){
     </div>`;
 }
 
+// Envia o e-mail de aviso ao dono via EmailJS, só se estiver ativado e
+// configurado no painel (Notificações). Falha em silêncio se não estiver.
+async function enviarNotificacaoEmailJS(pedido, itens, order){
+  try{
+    const { data: settings } = await supabaseClient
+      .from('site_settings')
+      .select('emailjs_ativo, emailjs_service_id, emailjs_template_id, emailjs_public_key')
+      .eq('id', 1).single();
+
+    if(!settings || !settings.emailjs_ativo || !settings.emailjs_service_id || !settings.emailjs_template_id || !settings.emailjs_public_key){
+      return;
+    }
+
+    const { data: perfil } = await supabaseClient
+      .from('profiles').select('nome').eq('id', pedido.cliente_id).single();
+
+    const listaItens = itens.map(i => `${i.quantidade}x ${i.nome} — ${formatKz(i.preco * i.quantidade)}`).join('\n');
+
+    await emailjs.send(settings.emailjs_service_id, settings.emailjs_template_id, {
+      customer_name: perfil?.nome || 'Cliente',
+      phone: pedido.telefone,
+      address: pedido.morada,
+      payment: pedido.pagamento,
+      items: listaItens,
+      total: formatKz(pedido.total),
+      order_id: order.id
+    }, settings.emailjs_public_key);
+  }catch(e){
+    console.warn('Não foi possível enviar a notificação por e-mail:', e);
+  }
+}
+
 init();
 </script>
 </body>
-</html>
+  </html>
