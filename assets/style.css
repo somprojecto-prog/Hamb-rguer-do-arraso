@@ -637,6 +637,38 @@ body{ padding-bottom: calc(64px + env(safe-area-inset-bottom)); }
 .drink-card .price{ color:var(--orange-light); font-weight:700; font-size:.85rem; margin-bottom:.5rem; }
 .age-notice{ font-size:.75rem; color:rgba(241,231,218,0.4); text-align:center; margin-top:-1.5rem; margin-bottom:2rem; }
 
+/* Bebidas alcoólicas — destacadas com um contorno e selo dourado/âmbar,
+   distinto do laranja normal, para se perceberem à primeira vista. */
+.drink-card.alcoolica .drink-img{
+  border-color:#c9972c; box-shadow:0 0 0 1px rgba(201,151,44,0.35);
+}
+.drink-card .alcool-badge{
+  display:inline-flex; align-items:center; gap:.2rem; font-size:.62rem; font-weight:800;
+  color:#1a1210; background:#c9972c; border-radius:20px; padding:.12rem .5rem; margin-bottom:.3rem;
+  letter-spacing:.03em;
+}
+
+/* ============================================================
+   LOCALIZAÇÃO / MAPA
+   ============================================================ */
+.location-section{
+  margin-top:2.5rem; display:grid; grid-template-columns:1fr; gap:1.2rem;
+}
+.location-card{
+  background:#1a1210; border:1px solid rgba(241,231,218,0.1); border-radius:16px;
+  padding:1.4rem; display:flex; flex-direction:column; gap:.9rem;
+}
+.location-card .row{ display:flex; align-items:flex-start; gap:.8rem; }
+.location-card .row svg{ flex-shrink:0; color:var(--orange-light); margin-top:.15rem; }
+.location-card .row p{ color:rgba(241,231,218,0.75); font-size:.92rem; line-height:1.5; }
+.location-map{
+  width:100%; height:200px; border:0; border-radius:14px; filter:grayscale(.25) contrast(1.05);
+}
+@media (min-width:700px){
+  .location-section{ grid-template-columns:1fr 1.2fr; align-items:stretch; }
+  .location-map{ height:100%; min-height:220px; }
+}
+
 /* ============================================================
    PÁGINA DE PRODUTO
    ============================================================ */

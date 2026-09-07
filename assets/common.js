@@ -132,6 +132,15 @@ async function applySiteSettings(){
     }
     if(data.contacto_morada){
       document.querySelectorAll('.js-contacto-morada').forEach(el => el.textContent = data.contacto_morada);
+      document.querySelectorAll('.js-mapa-embed').forEach(el => {
+        el.src = `https://www.google.com/maps?q=${encodeURIComponent(data.contacto_morada)}&output=embed`;
+      });
+      document.querySelectorAll('.js-mapa-link').forEach(el => {
+        el.href = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(data.contacto_morada)}`;
+      });
+      document.querySelectorAll('.js-localizacao-secao').forEach(el => el.style.display = '');
+    } else {
+      document.querySelectorAll('.js-localizacao-secao').forEach(el => el.style.display = 'none');
     }
   }catch(e){ console.warn('Não foi possível aplicar as configurações do site.', e); }
 }
