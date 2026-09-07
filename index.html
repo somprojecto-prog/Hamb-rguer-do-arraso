@@ -128,6 +128,19 @@
   </div>
   <p class="age-notice">🔞 Bebidas alcoólicas destinadas apenas a maiores de 18 anos.</p>
 
+  <div class="location-section js-localizacao-secao reveal" style="display:none;">
+    <div class="location-card">
+      <p class="section-eyebrow">ONDE ESTAMOS</p>
+      <h2 class="section-title" style="margin-bottom:.3rem;">Visite-nos</h2>
+      <div class="row">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg>
+        <p class="js-contacto-morada">A carregar morada…</p>
+      </div>
+      <a href="#" target="_blank" rel="noopener" class="btn-outline js-mapa-link" style="align-self:flex-start;">Ver no Google Maps</a>
+    </div>
+    <iframe class="location-map js-mapa-embed" loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="Localização no mapa"></iframe>
+  </div>
+
   <div class="promo-banner reveal">
     <div class="promo-icon">
       <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="var(--orange-light)" stroke-width="1.8"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M9 2h6M12 2v2"/></svg>
@@ -219,8 +232,9 @@ async function carregarDestaques(){
   if(dotsBox) dotsBox.innerHTML = fastfood.map((_,i) => `<span class="dot ${i===0?'active':''}"></span>`).join('');
 
   bebidasBox.innerHTML = bebidas.map(p => `
-    <a href="produto.html?id=${p.id}" class="drink-card">
+    <a href="produto.html?id=${p.id}" class="drink-card ${p.alcoolica ? 'alcoolica' : ''}">
       <div class="drink-img" style="${p.imagem_url?`background-image:url(${p.imagem_url})`:''}">${p.imagem_url?'':p.nome}</div>
+      ${p.alcoolica ? '<span class="alcool-badge">🔞 18+</span><br>' : ''}
       <h4>${p.nome}</h4>
       <p class="price">${formatKz(p.preco_promocional || p.preco)}</p>
       <button class="add-round sm" onclick="event.preventDefault(); window.location.href='produto.html?id=${p.id}'" aria-label="Adicionar">+</button>

@@ -180,12 +180,15 @@ async function carregarRelacionados(){
   const { data } = await supabaseClient
     .from('products').select('*')
     .eq('categoria', produto.categoria).eq('ativo', true)
-    .neq('id', produto.id).limit(3);
+    .neq('id', produto.id);
   if(!data || !data.length) return;
+  const maisBaratos = data
+    .sort((a,b) => (a.preco_promocional || a.preco) - (b.preco_promocional || b.preco))
+    .slice(0, 3);
   document.getElementById('relacionados-wrap').innerHTML = `
     <h3 style="font-size:1.2rem;margin-bottom:1rem;">Você também pode gostar</h3>
     <div class="product-grid">
-      ${data.map(p => `
+      ${maisBaratos.map(p => `
         <a href="produto.html?id=${p.id}" class="product-card burn-edge card-hover">
           <div class="product-img" style="height:120px;${p.imagem_url?`background-image:url(${p.imagem_url})`:''}">${p.imagem_url?'':'Sem foto'}</div>
           <div class="info">

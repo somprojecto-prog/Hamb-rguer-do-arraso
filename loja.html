@@ -82,8 +82,9 @@ async function carregar(){
   `).join('') || `<p class="empty-state">Sem produtos nesta categoria.</p>`;
 
   document.getElementById('bebidas-track').innerHTML = bebidas.map(p => `
-    <a href="produto.html?id=${p.id}" class="drink-card">
+    <a href="produto.html?id=${p.id}" class="drink-card ${p.alcoolica ? 'alcoolica' : ''}">
       <div class="drink-img" style="${p.imagem_url?`background-image:url(${p.imagem_url})`:''}">${p.imagem_url?'':p.nome}</div>
+      ${p.alcoolica ? '<span class="alcool-badge">🔞 18+</span><br>' : ''}
       <h4>${p.nome}</h4>
       <p class="price">${formatKz(p.preco_promocional || p.preco)}</p>
       <button class="btn-orange" style="padding:.4rem .9rem;font-size:.78rem;" onclick="event.preventDefault(); window.location.href='produto.html?id=${p.id}'">Adicionar</button>
